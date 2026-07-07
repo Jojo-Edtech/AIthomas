@@ -30,7 +30,7 @@ const LIMITS = {
 };
 const DEFAULT_ALLOWED_ORIGINS = [
   "https://jojo-edtech.github.io",
-  "https://34a1fb4ebc8184.lhr.life",
+  "https://c700f6574d53ae.lhr.life",
   "http://47.106.124.32"
 ];
 const ALLOWED_ORIGINS = parseAllowedOrigins(process.env.ALLOWED_ORIGINS);

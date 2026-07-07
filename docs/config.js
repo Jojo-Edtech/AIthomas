@@ -1,1 +1,1 @@
-window.AI_THOMAS_API_BASE = "https://34a1fb4ebc8184.lhr.life";
+window.AI_THOMAS_API_BASE = "https://c700f6574d53ae.lhr.life";
