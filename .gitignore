@@ -1,0 +1,14 @@
+.env
+node_modules/
+npm-debug.log*
+.DS_Store
+
+# Do not publish paper full-text extractions or private local corpus material.
+knowledge/extracted_text/
+../notes/extracted_text/
+*.pdf
+
+# Local deployment/runtime scratch.
+*.log
+tmp/
+.data/

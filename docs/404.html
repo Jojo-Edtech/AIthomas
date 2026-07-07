@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Thomas Reasoning</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="workspace-sidebar">
+        <div class="brand-block">
+          <div class="brand-mark" aria-hidden="true">T</div>
+          <div>
+            <h1>AI Thomas</h1>
+            <p>Research Reasoning Workbench</p>
+          </div>
+        </div>
+
+        <section class="sidebar-section status-section" aria-label="运行状态">
+          <div class="section-heading">
+            <h2>运行状态</h2>
+            <span class="status-dot" id="statusDot" aria-hidden="true"></span>
+          </div>
+          <p class="key-status" id="keyStatus">正在检查 DeepSeek 连接</p>
+          <p class="corpus-line" id="corpusStatus">正在读取本地论文语料</p>
+        </section>
+
+        <section class="sidebar-section" aria-label="回答模式">
+          <h2>研究模式</h2>
+          <div class="mode-grid" id="modeGrid">
+            <button class="mode-button active" data-mode="research-design" type="button">
+              <span class="mode-title">研究设计</span>
+              <span class="mode-copy">变量、模型、方法路径</span>
+            </button>
+            <button class="mode-button" data-mode="theory-frame" type="button">
+              <span class="mode-title">理论框架</span>
+              <span class="mode-copy">概念边界与机制</span>
+            </button>
+            <button class="mode-button" data-mode="literature-position" type="button">
+              <span class="mode-title">文献定位</span>
+              <span class="mode-copy">贡献、缺口、议程</span>
+            </button>
+            <button class="mode-button" data-mode="writing-feedback" type="button">
+              <span class="mode-title">写作反馈</span>
+              <span class="mode-copy">段落、标题、表达</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="sidebar-section" aria-label="知识底座">
+          <h2>知识底座</h2>
+          <dl class="stat-list">
+            <div>
+              <dt>Corpus PDFs</dt>
+              <dd id="paperCount">38</dd>
+            </div>
+            <div>
+              <dt>Evidence chunks</dt>
+              <dd id="chunkCount">513</dd>
+            </div>
+            <div>
+              <dt>Pending first-author</dt>
+              <dd id="missingCount">6</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="sidebar-section compact-note" aria-label="推理原则">
+          <h2>推理原则</h2>
+          <p>从教育问题进入，以支持条件和心理机制解释技术使用，再回到伦理、well-being 与制度含义。</p>
+        </section>
+      </aside>
+
+      <main class="workbench">
+        <header class="workbench-header">
+          <div>
+            <p class="eyebrow">Corpus of Thomas's Studies</p>
+            <h2>Thomas Reasoning</h2>
+          </div>
+          <div class="header-actions">
+            <span class="model-pill" id="modelName">DeepSeek V4 Flash</span>
+            <button class="clear-button" id="clearButton" type="button" aria-label="清空当前对话">新建会话</button>
+          </div>
+        </header>
+
+        <div class="workbench-body">
+          <section class="chat-session" aria-label="与 AI Thomas 持续对话">
+            <div class="message-list" id="messageList" aria-live="polite"></div>
+
+            <form class="composer" id="composer">
+              <label class="composer-label" for="messageInput">Message</label>
+              <textarea id="messageInput" rows="3" placeholder="输入你的问题，继续和 AI Thomas 对话"></textarea>
+              <button id="sendButton" type="submit">发送</button>
+            </form>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

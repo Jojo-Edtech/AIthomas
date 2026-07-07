@@ -1,0 +1,402 @@
+[
+  {
+    "row": 1,
+    "year": 2026,
+    "type": "Correction; Early Access",
+    "title": "INTELLIGENT-TPACK (I-TPACK) FRAMEWORK DEVELOPED FROM TPACK THROUGH INTEGRATION OF ARTIFICIAL INTELLIGENCE LITERACY AND COMPETENCY (15, 2025)",
+    "position": "I-TPACK 修正说明: 把 #2 的框架文章作为主文本阅读；这篇主要用于追踪正式版本修正。",
+    "reusable_action": "后续引用时以正式文章为准，同时检查 correction 是否影响框架维度。"
+  },
+  {
+    "row": 2,
+    "year": 2026,
+    "type": "Article; Early Access",
+    "title": "Intelligent-TPACK (I-TPACK) framework developed from TPACK through integration of artificial intelligence literacy and competency",
+    "position": "AI 时代重写 TPACK: 把传统 TPACK 的技术知识扩展为 AI 技术、AI 内容、AI 教学、人机协作与伦理知识。",
+    "reusable_action": "遇到 AI 教师能力题目时，不问“会不会用工具”，而问教师如何判断 AI 生成内容、设计任务、安排协作和承担伦理责任。"
+  },
+  {
+    "row": 3,
+    "year": 2026,
+    "type": "Editorial Material",
+    "title": "Six global frameworks for human-centred AI literacy and competency: comparative analysis and a way forward",
+    "position": "全球框架比较: 把 UNESCO/OECD 等 AI literacy 与 competency 框架放在一起比较，寻找共通维度与缺口。",
+    "reusable_action": "写综述或框架时先做横向框架映射，再给出本研究的“way forward”。"
+  },
+  {
+    "row": 4,
+    "year": 2026,
+    "type": "Editorial Material",
+    "title": "Student and teacher well-being for the AI Era from a balanced integration framework",
+    "position": "AI 时代 well-being: 把学生和教师 well-being 放进 AI 融合框架，强调平衡而不是单纯效率。",
+    "reusable_action": "任何 AI 教育改革都要问：它减轻还是增加认知、情绪、伦理和劳动负担。"
+  },
+  {
+    "row": 5,
+    "year": 2026,
+    "type": "Article; Early Access",
+    "title": "Teacher education for artificial intelligence literacy through a self-determination theory perspective",
+    "position": "教师 AI literacy 的 SDT 机制: 把 professional development 和 professional learning community 连接起来，用 SDT 解释教师 AI literacy、态度、焦虑和参与。",
+    "reusable_action": "教师教育设计要同时满足 autonomy、competence、relatedness，不能只给技术培训。"
+  },
+  {
+    "row": 6,
+    "year": 2025,
+    "type": "Article",
+    "title": "A decade of research contributions and emerging trends in the International Journal of STEM Education",
+    "position": "领域趋势定位: 用 bibliometric review 回顾 STEM 教育期刊十年贡献，识别主题演化和未来方向。",
+    "reusable_action": "当研究题目太散时，先用领域地图定位贡献位置，再回到可操作研究问题。"
+  },
+  {
+    "row": 7,
+    "year": 2025,
+    "type": "Editorial Material",
+    "title": "AI literacy and competency: definitions, frameworks, development and future research directions",
+    "position": "AI literacy vs AI competency: 区分 AI literacy 作为理解、批判和意识基础，AI competency 作为安全、伦理、有效行动能力。",
+    "reusable_action": "不要把 AI literacy 写成“会用 AI”；先建认知基础，再写行动能力和情境化迁移。"
+  },
+  {
+    "row": 8,
+    "year": 2025,
+    "type": "Editorial Material",
+    "title": "Developing intelligent-TPACK (I-TPACK) framework from unpacking AI literacy and competency: implementation strategies and future research direction",
+    "position": "I-TPACK 的实施路线: 从 AI literacy/competency 拆出 I-TPACK，并给教师教育、课程整合、评价改革和协作网络路线。",
+    "reusable_action": "框架文章要落到 implementation strategies，否则只是概念摆放。"
+  },
+  {
+    "row": 9,
+    "year": 2025,
+    "type": "Article",
+    "title": "Development and validation of teacher artificial intelligence (AI) competence self-efficacy (TAICS) scale",
+    "position": "教师 AI competence 量表: 通过专家/教师共识和量表验证，把 teacher AI competence self-efficacy 做成可测量结构。",
+    "reusable_action": "新能力概念要走“维度定义 - 条目生成 - 验证 - 跨群体检查”的路线。"
+  },
+  {
+    "row": 10,
+    "year": 2025,
+    "type": "Editorial Material",
+    "title": "Encouraging human-AI collaboration in interactive learning environments",
+    "position": "Human-AI collaboration: 把 interactive learning environments 中的 AI 使用转向人机协作、透明性、目的性和 autonomy。",
+    "reusable_action": "AI 不应替代教育关系，而要重新安排人和 AI 的分工边界。"
+  },
+  {
+    "row": 11,
+    "year": 2025,
+    "type": "Editorial Material",
+    "title": "Responsible digital citizen: building AI ethics awareness across subjects",
+    "position": "AI ethics 跨学科化: 把 responsible digital citizenship 和 AI ethics awareness 放进不同学科，而不是只放进计算机课。",
+    "reusable_action": "伦理不是附录，要变成跨学科课程和任务设计的一部分。"
+  },
+  {
+    "row": 12,
+    "year": 2025,
+    "type": "Editorial Material",
+    "title": "The digital drain on well-being: a human flourishing approach with an urgent focus on our future",
+    "position": "Digital drain 与 human flourishing: 把数字技术的 well-being 风险提升为 human flourishing 问题。",
+    "reusable_action": "技术评价要同时看学习表现、心理健康、关系质量和长期成长。"
+  },
+  {
+    "row": 13,
+    "year": 2025,
+    "type": "Article",
+    "title": "Validating student AI competency self-efficacy (SAICS) scale and its framework",
+    "position": "学生 AI competency 量表: 构建并验证 SAICS，强调学生能安全、健康、伦理、生产性地使用 AI。",
+    "reusable_action": "学生 AI 能力要测 self-efficacy 与具体能力维度，而不只问使用频率。"
+  },
+  {
+    "row": 14,
+    "year": 2024,
+    "type": "Article",
+    "title": "A classification tool to foster self-regulated learning with generative artificial intelligence by applying self-determination theory: a case of ChatGPT",
+    "position": "GenAI 支持 SRL 的分类工具: 用 SDT 和 SRL 阶段解释 ChatGPT 如何支持 forethought、performance、reflection。",
+    "reusable_action": "面对 GenAI，不先说好坏，而是把使用方式分类到动机与自我调节机制中。"
+  },
+  {
+    "row": 15,
+    "year": 2024,
+    "type": "Article",
+    "title": "A self-determination theory approach to teacher digital competence development",
+    "position": "教师数字能力的 SDT 发展: 把 teacher digital competence 与 AI/metaverse 时代能力联系起来，用 SDT 解释教师发展。",
+    "reusable_action": "教师能力发展需要制度文化、专业支持和心理需要满足，而不是只靠个体努力。"
+  },
+  {
+    "row": 20,
+    "year": 2024,
+    "type": "Editorial Material",
+    "title": "How do emerging technologies CRAFT our education? Current state and future research recommendations related to AI and the metaverse",
+    "position": "CRAFT emerging technologies: 把 AI 和 metaverse 对教育的影响整理为当前状态与未来研究议程。",
+    "reusable_action": "处理新兴技术时，用清晰框架把 learning、teaching、assessment、policy 分开讨论。"
+  },
+  {
+    "row": 21,
+    "year": 2024,
+    "type": "Article",
+    "title": "Teacher support and student motivation to learn with Artificial Intelligence (AI) based chatbot",
+    "position": "AI chatbot 中教师支持的边界: 实验检验 teacher support 与 learner expertise 如何影响 AI chatbot 学习动机和需要满足。",
+    "reusable_action": "自动化工具越强，越要问哪些学生仍需要教师支持，以及支持会不会压低 autonomy。"
+  },
+  {
+    "row": 22,
+    "year": 2024,
+    "type": "Article",
+    "title": "The impact of Generative AI (GenAI) on practices, policies and research direction in education: a case of ChatGPT and Midjourney",
+    "position": "GenAI 改变学校实践: 用教师和领导者视角分析 ChatGPT/Midjourney 对学习、教学、评价、行政和政策的影响。",
+    "reusable_action": "学校 AI 研究要从教师 sense-making 切入，而不是从工具功能清单切入。"
+  },
+  {
+    "row": 23,
+    "year": 2024,
+    "type": "Article",
+    "title": "Using self-determination theory (SDT) to explain student STEM interest and identity development",
+    "position": "STEM interest 与 identity 的 SDT 模型: 用 teacher support 和 needs satisfaction 解释学生 STEM interest 与 identity 发展。",
+    "reusable_action": "兴趣和身份不是结果变量堆叠，而是由支持条件通过心理需要逐步生成。"
+  },
+  {
+    "row": 24,
+    "year": 2024,
+    "type": "Article",
+    "title": "What are artificial intelligence literacy and competency? A comprehensive framework to support them",
+    "position": "AI literacy/competency 的关键定义与 K-12 框架: 把 literacy 定位为知道与理解，把 competency 推到有信心、有能力、有反思地行动，并用 technology、impact、ethics、collaboration、self-reflection 五组件组织 AI 教育。",
+    "reusable_action": "写 AI 能力或课程框架时，先区分 knowing 与 doing，再通过教师共创把内容、学习过程、真实实践和反思能力连起来。"
+  },
+  {
+    "row": 25,
+    "year": 2023,
+    "type": "Article",
+    "title": "Student engagement in K-12 online learning amid COVID-19: A qualitative approach from a self-determination theory perspective",
+    "position": "疫情在线学习的 SDT 质性解释: 从学生经验中分析在线学习 engagement 如何依赖 autonomy、competence、relatedness。",
+    "reusable_action": "当情境剧烈变化时，用质性材料先还原学生需要如何被满足或挫败。"
+  },
+  {
+    "row": 26,
+    "year": 2023,
+    "type": "Review",
+    "title": "Systematic literature review on opportunities, challenges, and future research recommendations of artificial intelligence in education",
+    "position": "AIED 系统综述: 按 learning、teaching、assessment、administration 梳理 AI in education 的机会、挑战和研究建议。",
+    "reusable_action": "AIED 综述要把技术应用和教育功能配对，避免只罗列算法。"
+  },
+  {
+    "row": 27,
+    "year": 2023,
+    "type": "Article",
+    "title": "Using Self-Determination Theory to Explain How Community-Based Learning Fosters Student Interest and Identity in Integrated STEM Education",
+    "position": "社区本位 STEM 与身份: 用 SDT 解释 community-based learning 如何通过真实问题支持 STEM interest 和 identity。",
+    "reusable_action": "真实情境的价值在于提供意义、选择、能力感和社会连接。"
+  },
+  {
+    "row": 28,
+    "year": 2022,
+    "type": "Article",
+    "title": "Applying the self-determination theory (SDT) to explain student engagement in online learning during the COVID-19 pandemic",
+    "position": "疫情在线学习 engagement 模型: 用问卷检验三种心理需要如何影响 K-12 在线学习 engagement。",
+    "reusable_action": "在线学习研究要把平台支持转译为 needs satisfaction，再解释 engagement。"
+  },
+  {
+    "row": 29,
+    "year": 2022,
+    "type": "Article",
+    "title": "Creation and Evaluation of a Pretertiary Artificial Intelligence (AI) Curriculum",
+    "position": "中学 AI 课程创建与评价: 介绍并评价 AI4Future pretertiary AI curriculum，强调 co-creation 和课程框架。",
+    "reusable_action": "AI 课程设计要让课程目标、活动、伦理和学生感知评估连在一起。"
+  },
+  {
+    "row": 30,
+    "year": 2022,
+    "type": "Article",
+    "title": "Investigating the relationship of technology learning support to digital literacy from the perspective of self-determination theory",
+    "position": "技术学习支持与 digital literacy: 用 SDT 检验 technology learning support 如何通过 needs satisfaction 影响 digital literacy。",
+    "reusable_action": "数字素养不是自然习得，它依赖学习支持和心理需要满足。"
+  },
+  {
+    "row": 31,
+    "year": 2022,
+    "type": "Article",
+    "title": "School learning support for teacher technology integration from a self-determination theory perspective",
+    "position": "学校支持与教师技术整合: 把 teacher technology integration 的 persistence 放进 SDT，关注学校学习支持和教师动机。",
+    "reusable_action": "推动教师用技术，要研究学校如何支持教师持续使用，而不是只研究接受度。"
+  },
+  {
+    "row": 32,
+    "year": 2021,
+    "type": "Article",
+    "title": "A Holistic Approach to the Design of Artificial Intelligence (AI) Education for K-12 Schools",
+    "position": "K-12 AI 教育整体设计: 从教师视角提出 holistic AI education design，关注课程、教师准备和可持续实施。",
+    "reusable_action": "AI 教育课程必须同时处理技术内容、教学安排、伦理和学校实施条件。"
+  },
+  {
+    "row": 33,
+    "year": 2021,
+    "type": "Article",
+    "title": "Digital support for student engagement in blended learning based on self-determination theoryk",
+    "position": "Blended learning 的 digital support: 把 digital support 与 teacher support 并列，用 SDT 解释 blended learning engagement。",
+    "reusable_action": "数字支持只有在满足 autonomy、competence、relatedness 时才转化为 engagement。"
+  },
+  {
+    "row": 34,
+    "year": 2021,
+    "type": "Editorial Material",
+    "title": "Motivating Online Learning: The Challenges of COVID-19 and Beyond",
+    "position": "在线学习动机议程: 以 COVID-19 为背景提出 online learning motivation 的挑战与未来方向。",
+    "reusable_action": "危机中的在线学习研究要回到 motivation 和 engagement 的基础机制。"
+  },
+  {
+    "row": 35,
+    "year": 2021,
+    "type": "Article",
+    "title": "Teacher Professional Development on Self-Determination Theory-Based Design Thinking in STEM Education",
+    "position": "SDT-based design thinking 教师发展: 把设计思维、STEM 教师专业发展与 SDT 连接起来。",
+    "reusable_action": "教师 PD 可以被设计成满足需要的学习环境，而不是一次性培训。"
+  },
+  {
+    "row": 36,
+    "year": 2020,
+    "type": "Article",
+    "title": "Does learner expertise matter when designing emotional multimedia for learners of primary school mathematics?",
+    "position": "情绪化多媒体与 learner expertise: 用 multimedia learning、CATLM 和 learner expertise 解释情绪设计何时有效。",
+    "reusable_action": "早期思维已关注“同一设计对不同学习者不一样”，这是后来 teacher support / AI support 分层逻辑的前身。"
+  },
+  {
+    "row": 37,
+    "year": 2020,
+    "type": "Article",
+    "title": "Sustainable Curriculum Planning for Artificial Intelligence Education: A Self-determination Theory Perspective",
+    "position": "AI curriculum planning 的 SDT 视角: 用 SDT 分析可持续 AI curriculum planning 中教师信念、参与和课程设计。",
+    "reusable_action": "新课程进入学校时，先解决教师为什么愿意参与和如何获得能力感。"
+  },
+  {
+    "row": 38,
+    "year": 2018,
+    "type": "Article",
+    "title": "Factors influencing peer learning and performance in MOOC asynchronous online discussion forum",
+    "position": "MOOC 异步讨论行为: 分析 viewing、posting 等论坛行为与 peer learning/performance 的关系。",
+    "reusable_action": "在线学习行为不能只看显性发帖，低行动成本行为也可能有学习意义。"
+  },
+  {
+    "row": 39,
+    "year": 2017,
+    "type": "Article",
+    "title": "Introducing electronic textbooks as daily-use technology in schools: A top-down adoption process",
+    "position": "电子教材 top-down adoption: 把电子教材视为 compulsory daily-use technology，关注教师焦虑、工作量和采纳过程。",
+    "reusable_action": "技术采纳研究要区分自愿采纳和学校强制采纳，教师情绪是机制变量。"
+  },
+  {
+    "row": 41,
+    "year": 2016,
+    "type": "Article",
+    "title": "Adoption of mobile devices in teaching: changes in teacher beliefs, attitudes and anxiety",
+    "position": "移动设备采纳中的教师信念: 用准实验考察移动设备进入教学后教师 beliefs、attitudes、anxiety 的变化。",
+    "reusable_action": "教师技术整合的关键不是一次性态度，而是使用过程中的信念和焦虑变化。"
+  },
+  {
+    "row": 42,
+    "year": 2016,
+    "type": "Article",
+    "title": "Design of learning objects for concept learning: effects of multimedia learning principles and an instructional approach",
+    "position": "数学概念学习对象设计: 结合 multimedia learning principles、variation theory 和 representations of subject matter。",
+    "reusable_action": "技术材料设计要服务概念理解，不能只套通用多媒体原则。"
+  },
+  {
+    "row": 43,
+    "year": 2016,
+    "type": "Article; Book Chapter",
+    "title": "Effects of Prior Knowledge on Mathematics Different Order Thinking Skills in Mobile Multimedia Environments",
+    "position": "先验知识与移动多媒体: 研究 prior knowledge 如何影响不同阶数学思维在移动多媒体环境中的发展。",
+    "reusable_action": "学习者差异是设计变量，不是控制掉的噪音。"
+  },
+  {
+    "row": "C01",
+    "year": 2026,
+    "type": "Corresponding-author Article; Early Access",
+    "title": "How Do Autonomy, Critical Thinking, and Artificial Intelligence Value Perception Affect University Student Self-regulated Learning?",
+    "position": "通讯作者扩展文献: Thomas K. F. Chiu 不是第一作者，但 WoS Reprint Addresses 标记其为通讯作者；用于扩展 AI Thomas 对共同研究网络、学生/教师支持机制、GenAI 与 AI literacy 议题的背景理解。来源期刊: TECHTRENDS.",
+    "reusable_action": "可作为 Thomas 通讯作者研究网络的证据使用；回答时不要把它表述为 Thomas 一作论文，必要时区分“核心一作语料”和“通讯作者扩展语料”。"
+  },
+  {
+    "row": "C03",
+    "year": 2026,
+    "type": "Corresponding-author Article; Early Access",
+    "title": "How Does Learner Prior Language Knowledge Play in GenAI-Assisted Project-Based Learning for Creative Thinking?",
+    "position": "通讯作者扩展文献: Thomas K. F. Chiu 不是第一作者，但 WoS Reprint Addresses 标记其为通讯作者；用于扩展 AI Thomas 对共同研究网络、学生/教师支持机制、GenAI 与 AI literacy 议题的背景理解。来源期刊: TECHNOLOGY KNOWLEDGE AND LEARNING.",
+    "reusable_action": "可作为 Thomas 通讯作者研究网络的证据使用；回答时不要把它表述为 Thomas 一作论文，必要时区分“核心一作语料”和“通讯作者扩展语料”。"
+  },
+  {
+    "row": "C04",
+    "year": 2026,
+    "type": "Corresponding-author Article; Early Access",
+    "title": "Do digital technology: reading links differ between English and Chinese? Considering language systems and school contexts",
+    "position": "通讯作者扩展文献: Thomas K. F. Chiu 不是第一作者，但 WoS Reprint Addresses 标记其为通讯作者；用于扩展 AI Thomas 对共同研究网络、学生/教师支持机制、GenAI 与 AI literacy 议题的背景理解。来源期刊: READING AND WRITING.",
+    "reusable_action": "可作为 Thomas 通讯作者研究网络的证据使用；回答时不要把它表述为 Thomas 一作论文，必要时区分“核心一作语料”和“通讯作者扩展语料”。"
+  },
+  {
+    "row": "C09",
+    "year": 2026,
+    "type": "Corresponding-author Article",
+    "title": "Self-Regulated Learning with AI: A Comparative Analysis of General-Purpose and Task-Specific Platforms",
+    "position": "通讯作者扩展文献: Thomas K. F. Chiu 不是第一作者，但 WoS Reprint Addresses 标记其为通讯作者；用于扩展 AI Thomas 对共同研究网络、学生/教师支持机制、GenAI 与 AI literacy 议题的背景理解。来源期刊: INTERNATIONAL JOURNAL OF TECHNOLOGY IN EDUCATION.",
+    "reusable_action": "可作为 Thomas 通讯作者研究网络的证据使用；回答时不要把它表述为 Thomas 一作论文，必要时区分“核心一作语料”和“通讯作者扩展语料”。"
+  },
+  {
+    "row": "C11",
+    "year": 2026,
+    "type": "Corresponding-author Article",
+    "title": "Generative artificial intelligence competency self-efficacy scale for teachers and researchers (GAICS-TR) in higher education",
+    "position": "通讯作者扩展文献: Thomas K. F. Chiu 不是第一作者，但 WoS Reprint Addresses 标记其为通讯作者；用于扩展 AI Thomas 对共同研究网络、学生/教师支持机制、GenAI 与 AI literacy 议题的背景理解。来源期刊: JOURNAL OF COMPUTERS IN EDUCATION.",
+    "reusable_action": "可作为 Thomas 通讯作者研究网络的证据使用；回答时不要把它表述为 Thomas 一作论文，必要时区分“核心一作语料”和“通讯作者扩展语料”。"
+  },
+  {
+    "row": "C13",
+    "year": 2026,
+    "type": "Corresponding-author Article",
+    "title": "Applying Generative Artificial Intelligence to Task-based Language Teaching and Learning: A Systematic Review and Meta-analysis",
+    "position": "通讯作者扩展文献: Thomas K. F. Chiu 不是第一作者，但 WoS Reprint Addresses 标记其为通讯作者；用于扩展 AI Thomas 对共同研究网络、学生/教师支持机制、GenAI 与 AI literacy 议题的背景理解。来源期刊: TECHTRENDS.",
+    "reusable_action": "可作为 Thomas 通讯作者研究网络的证据使用；回答时不要把它表述为 Thomas 一作论文，必要时区分“核心一作语料”和“通讯作者扩展语料”。"
+  },
+  {
+    "row": "C18",
+    "year": 2025,
+    "type": "Corresponding-author Article",
+    "title": "The mediating effects of needs satisfaction on the relationship between teacher support and student engagement with generative artificial intelligence (GenAI) chatbots from a self-determination theory (SDT) perspective",
+    "position": "通讯作者扩展文献: Thomas K. F. Chiu 不是第一作者，但 WoS Reprint Addresses 标记其为通讯作者；用于扩展 AI Thomas 对共同研究网络、学生/教师支持机制、GenAI 与 AI literacy 议题的背景理解。来源期刊: EDUCATION AND INFORMATION TECHNOLOGIES.",
+    "reusable_action": "可作为 Thomas 通讯作者研究网络的证据使用；回答时不要把它表述为 Thomas 一作论文，必要时区分“核心一作语料”和“通讯作者扩展语料”。"
+  },
+  {
+    "row": "C21",
+    "year": 2025,
+    "type": "Corresponding-author Article",
+    "title": "Integrating learner characteristics and generative AI affordances to enhance self-regulated learning: a configurational analysis",
+    "position": "通讯作者扩展文献: Thomas K. F. Chiu 不是第一作者，但 WoS Reprint Addresses 标记其为通讯作者；用于扩展 AI Thomas 对共同研究网络、学生/教师支持机制、GenAI 与 AI literacy 议题的背景理解。来源期刊: JOURNAL OF NEW APPROACHES IN EDUCATIONAL RESEARCH.",
+    "reusable_action": "可作为 Thomas 通讯作者研究网络的证据使用；回答时不要把它表述为 Thomas 一作论文，必要时区分“核心一作语料”和“通讯作者扩展语料”。"
+  },
+  {
+    "row": "C23",
+    "year": 2025,
+    "type": "Corresponding-author Review",
+    "title": "Design language learning with artificial intelligence (AI) chatbots based on activity theory from a systematic review",
+    "position": "通讯作者扩展文献: Thomas K. F. Chiu 不是第一作者，但 WoS Reprint Addresses 标记其为通讯作者；用于扩展 AI Thomas 对共同研究网络、学生/教师支持机制、GenAI 与 AI literacy 议题的背景理解。来源期刊: SMART LEARNING ENVIRONMENTS.",
+    "reusable_action": "可作为 Thomas 通讯作者研究网络的证据使用；回答时不要把它表述为 Thomas 一作论文，必要时区分“核心一作语料”和“通讯作者扩展语料”。"
+  },
+  {
+    "row": "C27",
+    "year": 2024,
+    "type": "Corresponding-author Review",
+    "title": "A scoping review on how generative artificial intelligence transforms assessment in higher education",
+    "position": "通讯作者扩展文献: Thomas K. F. Chiu 不是第一作者，但 WoS Reprint Addresses 标记其为通讯作者；用于扩展 AI Thomas 对共同研究网络、学生/教师支持机制、GenAI 与 AI literacy 议题的背景理解。来源期刊: INTERNATIONAL JOURNAL OF EDUCATIONAL TECHNOLOGY IN HIGHER EDUCATION.",
+    "reusable_action": "可作为 Thomas 通讯作者研究网络的证据使用；回答时不要把它表述为 Thomas 一作论文，必要时区分“核心一作语料”和“通讯作者扩展语料”。"
+  },
+  {
+    "row": "C32",
+    "year": 2023,
+    "type": "Corresponding-author Article",
+    "title": "A phenomenographic approach on teacher conceptions of teaching Artificial Intelligence (AI) in K-12 schools",
+    "position": "通讯作者扩展文献: Thomas K. F. Chiu 不是第一作者，但 WoS Reprint Addresses 标记其为通讯作者；用于扩展 AI Thomas 对共同研究网络、学生/教师支持机制、GenAI 与 AI literacy 议题的背景理解。来源期刊: EDUCATION AND INFORMATION TECHNOLOGIES.",
+    "reusable_action": "可作为 Thomas 通讯作者研究网络的证据使用；回答时不要把它表述为 Thomas 一作论文，必要时区分“核心一作语料”和“通讯作者扩展语料”。"
+  },
+  {
+    "row": "C34",
+    "year": 2022,
+    "type": "Corresponding-author Article",
+    "title": "Applying Relatedness to Explain Learning Outcomes of STEM Maker Activities",
+    "position": "通讯作者扩展文献: Thomas K. F. Chiu 不是第一作者，但 WoS Reprint Addresses 标记其为通讯作者；用于扩展 AI Thomas 对共同研究网络、学生/教师支持机制、GenAI 与 AI literacy 议题的背景理解。来源期刊: FRONTIERS IN PSYCHOLOGY.",
+    "reusable_action": "可作为 Thomas 通讯作者研究网络的证据使用；回答时不要把它表述为 Thomas 一作论文，必要时区分“核心一作语料”和“通讯作者扩展语料”。"
+  }
+]

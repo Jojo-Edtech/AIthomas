@@ -1,0 +1,14 @@
+{
+  "name": "ai-thomas-chatbot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local AI Thomas chatbot backed by Thomas K. F. Chiu first-author papers and DeepSeek.",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
