@@ -899,70 +899,309 @@ p {
   background: #98b7b3;
 }
 
-@media (max-width: 920px) {
+@media (max-width: 1100px), (hover: none) and (pointer: coarse) {
   html,
   body {
-    height: auto;
-    overflow: auto;
+    height: 100%;
+    overflow: hidden;
   }
 
   .app-shell {
     grid-template-columns: 1fr;
-    height: auto;
-    min-height: 100vh;
-    overflow: visible;
+    grid-template-rows: auto minmax(0, 1fr);
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .workspace-sidebar {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 18px;
-    padding: 20px;
-    overflow: visible;
+    grid-template-columns: minmax(230px, 1.15fr) minmax(180px, 0.85fr);
+    align-items: start;
+    gap: 12px;
+    max-height: min(34dvh, 300px);
+    min-height: 0;
+    padding: 14px 16px;
+    overflow-y: auto;
     border-right: 0;
     border-bottom: 1px solid var(--line);
+    box-shadow: 0 8px 24px rgba(28, 37, 44, 0.06);
   }
 
-  .mode-grid {
-    grid-template-columns: 1fr 1fr;
+  .workspace-sidebar > *,
+  .conversation-list,
+  .mode-grid,
+  .workflow-grid,
+  .stat-list {
+    min-width: 0;
+  }
+
+  .brand-block {
+    grid-template-columns: 46px minmax(0, 1fr);
+    gap: 11px;
+  }
+
+  .brand-mark {
+    width: 46px;
+    height: 46px;
+  }
+
+  .brand-block h1 {
+    font-size: 22px;
+  }
+
+  .status-section,
+  .account-section,
+  .conversation-section,
+  .mode-section,
+  .workflow-section,
+  .knowledge-section {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .status-section,
+  .conversation-section,
+  .mode-section,
+  .workflow-section,
+  .knowledge-section {
+    grid-column: 1 / -1;
+  }
+
+  .sidebar-section h2 {
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+
+  .section-heading {
+    margin-bottom: 8px;
+  }
+
+  .status-section {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr);
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .status-section .section-heading {
+    margin-bottom: 0;
+  }
+
+  .key-status,
+  .corpus-line,
+  .user-badge {
+    min-height: 36px;
+    margin: 0;
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  .logout-button {
+    min-height: 36px;
+    margin-top: 6px;
+  }
+
+  .conversation-list,
+  .mode-grid,
+  .workflow-grid,
+  .stat-list {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 3px;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .conversation-button,
+  .mode-button,
+  .workflow-button,
+  .stat-list div {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+
+  .conversation-button {
+    width: min(260px, 76vw);
+    min-height: 50px;
+  }
+
+  .conversation-empty {
+    min-width: min(260px, 76vw);
+  }
+
+  .mode-button {
+    width: 190px;
+    min-height: 54px;
+  }
+
+  .workflow-button {
+    width: 188px;
+    min-height: 50px;
+  }
+
+  .stat-list div {
+    width: 184px;
+    min-height: 42px;
   }
 
   .workbench {
-    min-height: 720px;
-    height: calc(100vh - 120px);
+    min-height: 0;
+    height: 100%;
   }
 
-  .workbench-header,
-  .workbench-body {
-    padding-left: 20px;
-    padding-right: 20px;
+  .workbench-header {
+    align-items: center;
+    gap: 14px;
+    padding: 15px 16px 13px;
+  }
+
+  .workbench-header h2 {
+    margin-top: 4px;
+    font-size: 26px;
+  }
+
+  .header-actions {
+    gap: 8px;
   }
 
   .workbench-body {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 12px 14px max(14px, env(safe-area-inset-bottom));
   }
 
   .chat-session {
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 10px;
     min-height: 0;
+    padding: 12px;
+    box-shadow: none;
   }
 
   .message-list {
-    width: min(860px, 100%);
+    width: 100%;
+    padding: 8px 4px 10px;
+  }
+
+  .message {
+    max-width: min(92%, 720px);
+    margin-bottom: 11px;
+  }
+
+  .message.assistant {
+    max-width: 100%;
+  }
+
+  .composer {
+    grid-template-columns: minmax(0, 1fr) 84px;
+    gap: 8px;
+    padding-top: 10px;
+  }
+
+  .composer textarea {
+    min-height: 72px;
+    max-height: 150px;
+  }
+
+  .composer button {
+    min-height: 72px;
   }
 }
 
 @media (max-width: 620px) {
+  .app-shell {
+    background: var(--surface);
+  }
+
+  .workspace-sidebar {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    max-height: min(31dvh, 230px);
+    padding: 12px 12px 10px;
+  }
+
   .brand-block {
-    grid-template-columns: 44px 1fr;
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 10px;
+    order: 1;
   }
 
   .brand-mark {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
+    font-size: 19px;
+  }
+
+  .brand-block h1 {
+    font-size: 20px;
+  }
+
+  .brand-block p,
+  .key-status,
+  .corpus-line,
+  .user-badge,
+  .stat-list dt,
+  .mode-copy,
+  .workflow-copy {
+    font-size: 12px;
+  }
+
+  .account-section,
+  .workbench-header .eyebrow {
+    display: none;
+  }
+
+  .logout-button {
+    min-height: 34px;
+    margin-top: 2px;
+    padding: 0 10px;
+    white-space: nowrap;
+  }
+
+  .status-section {
+    order: 2;
+    grid-template-columns: auto minmax(180px, 1fr);
+  }
+
+  .corpus-line {
+    display: none;
+  }
+
+  .mode-section {
+    order: 3;
+  }
+
+  .workflow-section {
+    order: 4;
+  }
+
+  .conversation-section {
+    order: 5;
+  }
+
+  .mode-button {
+    width: 174px;
+  }
+
+  .workflow-button {
+    width: 170px;
+  }
+
+  .knowledge-section {
+    display: none;
   }
 
   .workbench-header {
     flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 12px 12px 10px;
+  }
+
+  .workbench-header h2 {
+    font-size: 23px;
   }
 
   .header-actions {
@@ -970,12 +1209,56 @@ p {
     justify-content: space-between;
   }
 
-  .mode-grid,
+  .model-pill,
+  .clear-button {
+    min-height: 34px;
+    padding: 7px 10px;
+    font-size: 12px;
+  }
+
+  .workbench-body {
+    padding: 0;
+  }
+
+  .chat-session {
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: 0;
+    padding: 10px 10px max(10px, env(safe-area-inset-bottom));
+  }
+
+  .message {
+    max-width: 94%;
+    padding: 10px 11px;
+  }
+
+  .message.assistant {
+    max-width: 100%;
+  }
+
+  .message-content {
+    font-size: 14px;
+    line-height: 1.56;
+  }
+
+  .message-content table {
+    min-width: 560px;
+  }
+
+  .source-list {
+    gap: 6px;
+  }
+
   .composer {
     grid-template-columns: 1fr;
   }
 
+  .composer textarea {
+    min-height: 74px;
+  }
+
   .composer button {
-    min-height: 48px;
+    min-height: 46px;
   }
 }
