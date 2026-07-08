@@ -1,6 +1,7 @@
 const LEGACY_STORAGE_KEY = "ai-thomas-current-conversation-v2";
 const ACTIVE_CONVERSATION_KEY = "ai-thomas-active-conversation-v1";
 const API_VISITOR_KEY = "ai-thomas-api-visitor-v1";
+const MOBILE_PANEL_KEY = "ai-thomas-mobile-panel-collapsed-v1";
 const DEFAULT_MESSAGES = [
   {
     role: "assistant",
@@ -45,6 +46,7 @@ const state = {
   mode: "research-design",
   workflow: null,
   messages: [...DEFAULT_MESSAGES],
+  mobilePanelCollapsed: loadMobilePanelCollapsed(),
   busy: false
 };
 
@@ -74,11 +76,13 @@ const chunkCount = document.querySelector("#chunkCount");
 const modelName = document.querySelector("#modelName");
 const keyStatus = document.querySelector("#keyStatus");
 const statusDot = document.querySelector("#statusDot");
+const mobilePanelToggle = document.querySelector("#mobilePanelToggle");
 
 init();
 
 async function init() {
   hidePrimaryScreens();
+  applyMobilePanelState();
   renderMessages();
   renderWorkflowButtons();
   await loadStatus();
@@ -165,6 +169,9 @@ conversationList?.addEventListener("click", async (event) => {
 
 newConversationButton?.addEventListener("click", () => createConversation());
 clearButton.addEventListener("click", () => createConversation());
+mobilePanelToggle?.addEventListener("click", () => {
+  setMobilePanelCollapsed(!state.mobilePanelCollapsed);
+});
 
 if (quickRow) {
   quickRow.addEventListener("click", (event) => {
@@ -177,7 +184,10 @@ if (quickRow) {
 }
 
 input.addEventListener("input", resizeInput);
-window.addEventListener("resize", resizeInput);
+window.addEventListener("resize", () => {
+  resizeInput();
+  applyMobilePanelState();
+});
 
 input.addEventListener("keydown", (event) => {
   if (event.key !== "Enter" || event.shiftKey || event.isComposing) return;
@@ -251,6 +261,26 @@ function showAppShell(visible) {
   if (userBadge) userBadge.textContent = state.user?.displayName || state.user?.username || "Not signed in";
   if (logoutButton) {
     logoutButton.textContent = state.user?.anonymous ? "重置访客身份" : "退出登录";
+  }
+  applyMobilePanelState();
+}
+
+function setMobilePanelCollapsed(collapsed) {
+  state.mobilePanelCollapsed = Boolean(collapsed);
+  try {
+    window.localStorage.setItem(MOBILE_PANEL_KEY, state.mobilePanelCollapsed ? "true" : "false");
+  } catch {
+    // The toggle still works for the current page without local storage.
+  }
+  applyMobilePanelState();
+}
+
+function applyMobilePanelState() {
+  if (!appShell) return;
+  appShell.classList.toggle("mobile-panel-collapsed", state.mobilePanelCollapsed);
+  if (mobilePanelToggle) {
+    mobilePanelToggle.textContent = state.mobilePanelCollapsed ? "工具" : "收起";
+    mobilePanelToggle.setAttribute("aria-expanded", state.mobilePanelCollapsed ? "false" : "true");
   }
 }
 
@@ -624,6 +654,15 @@ function loadActiveConversationId() {
     return window.localStorage.getItem(ACTIVE_CONVERSATION_KEY) || null;
   } catch {
     return null;
+  }
+}
+
+function loadMobilePanelCollapsed() {
+  try {
+    const saved = window.localStorage.getItem(MOBILE_PANEL_KEY);
+    return saved === null ? true : saved === "true";
+  } catch {
+    return true;
   }
 }
 

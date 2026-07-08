@@ -293,6 +293,10 @@ p {
   font-weight: 760;
 }
 
+.mobile-panel-toggle {
+  display: none;
+}
+
 .logout-button {
   width: 100%;
   margin-top: 8px;
@@ -1702,7 +1706,7 @@ textarea:focus-visible {
   }
 
   .brand-block {
-    grid-template-columns: 34px minmax(0, 1fr);
+    grid-template-columns: 34px minmax(0, 1fr) auto;
     gap: 8px;
   }
 
@@ -1718,6 +1722,25 @@ textarea:focus-visible {
 
   .brand-block p {
     display: none;
+  }
+
+  .mobile-panel-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+    padding: 0 10px;
+    border: 1px solid rgba(124, 151, 205, 0.82);
+    border-radius: 8px;
+    color: #1b2a52;
+    background: rgba(248, 251, 255, 0.76);
+    font-size: 12px;
+    font-weight: 820;
+    white-space: nowrap;
+  }
+
+  .mobile-panel-toggle:hover {
+    background: #f5f9ff;
   }
 
   .status-section {
@@ -1755,6 +1778,20 @@ textarea:focus-visible {
   .workflow-section,
   .conversation-section {
     display: none;
+  }
+
+  .app-shell.mobile-panel-collapsed .workspace-sidebar {
+    max-height: none;
+    padding: 8px 10px;
+  }
+
+  .app-shell.mobile-panel-collapsed .status-section,
+  .app-shell.mobile-panel-collapsed .mode-section {
+    display: none;
+  }
+
+  .app-shell.mobile-panel-collapsed .brand-block {
+    min-height: 34px;
   }
 
   .workbench {
