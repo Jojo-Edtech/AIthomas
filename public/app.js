@@ -184,6 +184,10 @@ composer.addEventListener("submit", async (event) => {
 
 async function refreshAuth() {
   const result = await apiJson("api/auth/me");
+  if (result.data?.authRequired && isCrossOriginApi()) {
+    window.location.href = appBaseUrl();
+    return;
+  }
   if (!result.ok || (result.data?.authRequired && !result.data?.authenticated)) {
     state.authRequired = Boolean(result.data?.authRequired ?? true);
     showLogin();
@@ -379,6 +383,21 @@ function apiUrl(path) {
   const base = String(window.AI_THOMAS_API_BASE || "").replace(/\/+$/, "");
   const cleanPath = String(path || "").replace(/^\/+/, "");
   return base ? `${base}/${cleanPath}` : cleanPath;
+}
+
+function appBaseUrl() {
+  const base = String(window.AI_THOMAS_API_BASE || "").replace(/\/+$/, "");
+  return base ? `${base}/` : "/";
+}
+
+function isCrossOriginApi() {
+  const base = String(window.AI_THOMAS_API_BASE || "");
+  if (!base) return false;
+  try {
+    return new URL(base, window.location.href).origin !== window.location.origin;
+  } catch {
+    return false;
+  }
 }
 
 function setMode(mode) {
