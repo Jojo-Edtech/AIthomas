@@ -3,153 +3,63 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Thomas Reasoning</title>
-    <link rel="stylesheet" href="styles.css">
+    <meta http-equiv="refresh" content="0; url=https://threats-blogs-pull-females.trycloudflare.com/">
+    <title>Opening AI Thomas</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: #20262e;
+        background: #f6f8f7;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+      }
+
+      main {
+        width: min(460px, calc(100vw - 40px));
+        text-align: center;
+      }
+
+      h1 {
+        margin: 0 0 12px;
+        font-size: 32px;
+        line-height: 1.1;
+      }
+
+      p {
+        margin: 0 0 22px;
+        color: #66717d;
+        font-size: 16px;
+        line-height: 1.6;
+      }
+
+      a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 0 18px;
+        border-radius: 8px;
+        background: #087f74;
+        color: #ffffff;
+        font-weight: 800;
+        text-decoration: none;
+      }
+    </style>
+    <script>
+      window.location.replace("https://threats-blogs-pull-females.trycloudflare.com/");
+    </script>
   </head>
   <body>
-    <section class="login-screen" id="loginScreen" hidden>
-      <form class="login-card" id="loginForm">
-        <div class="brand-mark" aria-hidden="true">T</div>
-        <h1>AI Thomas</h1>
-        <p>Sign in to your private Thomas Reasoning workspace.</p>
-        <label for="loginUsername">Username</label>
-        <input id="loginUsername" name="username" autocomplete="username" required>
-        <label for="loginPassword">Password</label>
-        <input id="loginPassword" name="password" type="password" autocomplete="current-password" required>
-        <p class="login-error" id="loginError" aria-live="polite"></p>
-        <button type="submit">Sign in</button>
-      </form>
-    </section>
-
-    <div class="app-shell" id="appShell" hidden>
-      <aside class="workspace-sidebar">
-        <div class="brand-block">
-          <div class="brand-mark" aria-hidden="true">T</div>
-          <div>
-            <h1>AI Thomas</h1>
-            <p>Thomas Reasoning Workbench</p>
-          </div>
-        </div>
-
-        <section class="sidebar-section status-section" aria-label="运行状态">
-          <div class="section-heading">
-            <h2>运行状态</h2>
-            <span class="status-dot" id="statusDot" aria-hidden="true"></span>
-          </div>
-          <p class="key-status" id="keyStatus">正在检查 DeepSeek 连接</p>
-          <p class="corpus-line" id="corpusStatus">正在读取本地论文语料</p>
-        </section>
-
-        <section class="sidebar-section account-section" aria-label="当前工作区">
-          <h2>当前工作区</h2>
-          <p class="user-badge" id="userBadge">Not signed in</p>
-          <button class="logout-button" id="logoutButton" type="button">重置访客身份</button>
-        </section>
-
-        <section class="sidebar-section conversation-section" aria-label="会话记录">
-          <div class="section-heading">
-            <h2>会话记录</h2>
-            <button class="mini-button" id="newConversationButton" type="button" aria-label="新建会话">New</button>
-          </div>
-          <div class="conversation-list" id="conversationList"></div>
-        </section>
-
-        <section class="sidebar-section" aria-label="回答模式">
-          <h2>研究模式</h2>
-          <div class="mode-grid" id="modeGrid">
-            <button class="mode-button active" data-mode="research-design" type="button">
-              <span class="mode-title">研究设计</span>
-              <span class="mode-copy">变量、模型、方法路径</span>
-            </button>
-            <button class="mode-button" data-mode="theory-frame" type="button">
-              <span class="mode-title">理论框架</span>
-              <span class="mode-copy">概念边界与机制</span>
-            </button>
-            <button class="mode-button" data-mode="literature-position" type="button">
-              <span class="mode-title">文献定位</span>
-              <span class="mode-copy">贡献、缺口、议程</span>
-            </button>
-            <button class="mode-button" data-mode="writing-feedback" type="button">
-              <span class="mode-title">写作反馈</span>
-              <span class="mode-copy">段落、标题、表达</span>
-            </button>
-          </div>
-        </section>
-
-        <section class="sidebar-section" aria-label="研究工具包">
-          <h2>研究工具包</h2>
-          <div class="workflow-grid" id="workflowGrid">
-            <button class="workflow-button" data-workflow="research-matrix" type="button">
-              <span class="workflow-title">研究矩阵</span>
-              <span class="workflow-copy">对象 × 产出类型</span>
-            </button>
-            <button class="workflow-button" data-workflow="concept-boundary" type="button">
-              <span class="workflow-title">概念边界</span>
-              <span class="workflow-copy">定义、区分、测量</span>
-            </button>
-            <button class="workflow-button" data-workflow="variable-model" type="button">
-              <span class="workflow-title">变量模型</span>
-              <span class="workflow-copy">机制、假设、方法</span>
-            </button>
-            <button class="workflow-button" data-workflow="paper-pipeline" type="button">
-              <span class="workflow-title">论文序列</span>
-              <span class="workflow-copy">1/3/5 年 pipeline</span>
-            </button>
-            <button class="workflow-button" data-workflow="paragraph-feedback" type="button">
-              <span class="workflow-title">段落反馈</span>
-              <span class="workflow-copy">诊断、改写、保留</span>
-            </button>
-          </div>
-        </section>
-
-        <section class="sidebar-section" aria-label="知识底座">
-          <h2>知识底座</h2>
-          <dl class="stat-list">
-            <div>
-              <dt>Corpus PDFs</dt>
-              <dd id="paperCount">38</dd>
-            </div>
-            <div>
-              <dt>Evidence chunks</dt>
-              <dd id="chunkCount">513</dd>
-            </div>
-            <div>
-              <dt>Pending first-author</dt>
-              <dd id="missingCount">6</dd>
-            </div>
-          </dl>
-        </section>
-
-      </aside>
-
-      <main class="workbench">
-        <header class="workbench-header">
-          <div>
-            <p class="eyebrow">Corpus of Thomas's Studies</p>
-            <h2>Thomas Reasoning</h2>
-          </div>
-          <div class="header-actions">
-            <span class="model-pill" id="modelName">DeepSeek V4 Flash</span>
-            <button class="clear-button" id="clearButton" type="button" aria-label="清空当前对话">新建会话</button>
-          </div>
-        </header>
-
-        <div class="workbench-body">
-          <section class="chat-session" aria-label="与 AI Thomas 持续对话">
-            <div class="message-list" id="messageList" aria-live="polite"></div>
-
-            <form class="composer" id="composer">
-              <label class="composer-label" for="messageInput">Message</label>
-              <div class="workflow-chip" id="workflowChip" hidden></div>
-              <textarea id="messageInput" rows="3" placeholder="输入你的问题，继续和 AI Thomas 对话"></textarea>
-              <button id="sendButton" type="submit">发送</button>
-            </form>
-          </section>
-        </div>
-      </main>
-    </div>
-
-    <script src="config.js"></script>
-    <script src="app.js"></script>
+    <main>
+      <h1>AI Thomas</h1>
+      <p>Opening the anonymous Thomas Reasoning workspace.</p>
+      <a href="https://threats-blogs-pull-females.trycloudflare.com/">Open AI Thomas</a>
+    </main>
   </body>
 </html>
