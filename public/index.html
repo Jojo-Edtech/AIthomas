@@ -7,7 +7,21 @@
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
-    <div class="app-shell">
+    <section class="login-screen" id="loginScreen">
+      <form class="login-card" id="loginForm">
+        <div class="brand-mark" aria-hidden="true">T</div>
+        <h1>AI Thomas</h1>
+        <p>Sign in to your private Thomas Reasoning workspace.</p>
+        <label for="loginUsername">Username</label>
+        <input id="loginUsername" name="username" autocomplete="username" required>
+        <label for="loginPassword">Password</label>
+        <input id="loginPassword" name="password" type="password" autocomplete="current-password" required>
+        <p class="login-error" id="loginError" aria-live="polite"></p>
+        <button type="submit">Sign in</button>
+      </form>
+    </section>
+
+    <div class="app-shell" id="appShell" hidden>
       <aside class="workspace-sidebar">
         <div class="brand-block">
           <div class="brand-mark" aria-hidden="true">T</div>
@@ -24,6 +38,20 @@
           </div>
           <p class="key-status" id="keyStatus">正在检查 DeepSeek 连接</p>
           <p class="corpus-line" id="corpusStatus">正在读取本地论文语料</p>
+        </section>
+
+        <section class="sidebar-section account-section" aria-label="当前账号">
+          <h2>当前账号</h2>
+          <p class="user-badge" id="userBadge">Not signed in</p>
+          <button class="logout-button" id="logoutButton" type="button">退出登录</button>
+        </section>
+
+        <section class="sidebar-section conversation-section" aria-label="会话记录">
+          <div class="section-heading">
+            <h2>会话记录</h2>
+            <button class="mini-button" id="newConversationButton" type="button" aria-label="新建会话">New</button>
+          </div>
+          <div class="conversation-list" id="conversationList"></div>
         </section>
 
         <section class="sidebar-section" aria-label="回答模式">

@@ -1,6 +1,7 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 
 const ROOT_DIR = __dirname;
 const PUBLIC_DIR = path.join(ROOT_DIR, "public");
@@ -28,6 +29,18 @@ const PAPER_CHUNK_OVERLAP_CHARS = 180;
 const MAX_BODY_BYTES = 1024 * 1024;
 const DATA_DIR = process.env.DATA_DIR || path.join(ROOT_DIR, ".data");
 const USAGE_FILE = path.join(DATA_DIR, "usage-limits.json");
+const USERS_FILE = path.join(DATA_DIR, "users.json");
+const SESSIONS_FILE = path.join(DATA_DIR, "sessions.json");
+const CONVERSATIONS_DIR = path.join(DATA_DIR, "conversations");
+const AUTH_REQUIRED = readBoolean("AUTH_REQUIRED", false);
+const SESSION_COOKIE_NAME = "ai_thomas_session";
+const SESSION_TTL_MS = readPositiveInt("SESSION_TTL_DAYS", 7) * 24 * 60 * 60 * 1000;
+const SESSION_SECRET = process.env.SESSION_SECRET || "ai-thomas-dev-session-secret";
+const DEV_USER = {
+  id: "local-dev",
+  username: "local-dev",
+  displayName: "Local dev"
+};
 const LIMITS = {
   perHour: readPositiveInt("MAX_REQUESTS_PER_HOUR", 12),
   perDay: readPositiveInt("MAX_REQUESTS_PER_DAY", 40),
@@ -80,6 +93,12 @@ function parseAllowedOrigins(value) {
 function readPositiveInt(name, fallback) {
   const value = Number(process.env[name]);
   return Number.isFinite(value) && value > 0 ? Math.floor(value) : fallback;
+}
+
+function readBoolean(name, fallback) {
+  const value = process.env[name];
+  if (value === undefined) return fallback;
+  return /^(1|true|yes|on)$/i.test(String(value).trim());
 }
 
 function readText(filePath, fallback = "") {
@@ -554,6 +573,294 @@ async function callDeepSeek(messages, mode, workflow) {
 
 function ensureDataDir() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.mkdirSync(CONVERSATIONS_DIR, { recursive: true });
+}
+
+function writeJson(filePath, data) {
+  ensureDataDir();
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  const tmpPath = `${filePath}.${process.pid}.${Date.now()}.tmp`;
+  fs.writeFileSync(tmpPath, JSON.stringify(data, null, 2));
+  fs.renameSync(tmpPath, filePath);
+}
+
+function readJsonFile(filePath, fallback) {
+  const data = safeJson(readText(filePath), null);
+  return data && typeof data === "object" ? data : fallback;
+}
+
+function publicUser(user) {
+  if (!user) return null;
+  return {
+    id: user.id,
+    username: user.username,
+    displayName: user.displayName || user.username
+  };
+}
+
+function readUsersStore() {
+  ensureDataDir();
+  const store = readJsonFile(USERS_FILE, null);
+  if (store && Array.isArray(store.users)) return store;
+  return { users: [] };
+}
+
+function writeUsersStore(store) {
+  writeJson(USERS_FILE, {
+    users: Array.isArray(store.users) ? store.users : []
+  });
+}
+
+function readSessionsStore() {
+  ensureDataDir();
+  const store = readJsonFile(SESSIONS_FILE, null);
+  if (store && Array.isArray(store.sessions)) return store;
+  return { sessions: [] };
+}
+
+function writeSessionsStore(store) {
+  writeJson(SESSIONS_FILE, {
+    sessions: Array.isArray(store.sessions) ? store.sessions : []
+  });
+}
+
+function findUserByUsername(username) {
+  const normalized = normalizeUsername(username);
+  const store = readUsersStore();
+  return store.users.find((user) => user.username === normalized && !user.disabled) || null;
+}
+
+function findUserById(userId) {
+  if (userId === DEV_USER.id && !AUTH_REQUIRED) return DEV_USER;
+  const store = readUsersStore();
+  return store.users.find((user) => user.id === userId && !user.disabled) || null;
+}
+
+function normalizeUsername(username) {
+  return String(username || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]/g, "");
+}
+
+function verifyPassword(password, passwordRecord) {
+  if (!passwordRecord || passwordRecord.algorithm !== "pbkdf2-sha256") return false;
+  const iterations = Number(passwordRecord.iterations);
+  const salt = Buffer.from(String(passwordRecord.salt || ""), "base64");
+  const expected = Buffer.from(String(passwordRecord.hash || ""), "base64");
+  if (!Number.isFinite(iterations) || iterations <= 0 || !salt.length || !expected.length) return false;
+  const actual = crypto.pbkdf2Sync(String(password || ""), salt, iterations, expected.length, "sha256");
+  return expected.length === actual.length && crypto.timingSafeEqual(expected, actual);
+}
+
+function hashSessionToken(token) {
+  return crypto
+    .createHmac("sha256", SESSION_SECRET)
+    .update(String(token || ""))
+    .digest("base64url");
+}
+
+function createSession(user, req) {
+  const token = crypto.randomBytes(32).toString("base64url");
+  const now = new Date();
+  const sessions = readSessionsStore();
+  const expiresAt = new Date(now.getTime() + SESSION_TTL_MS).toISOString();
+  const userAgent = String(req.headers["user-agent"] || "").slice(0, 160);
+  sessions.sessions = sessions.sessions
+    .filter((session) => Date.parse(session.expiresAt) > now.getTime())
+    .filter((session) => session.userId !== user.id || Date.parse(session.expiresAt) > now.getTime());
+  sessions.sessions.push({
+    id: crypto.randomUUID(),
+    userId: user.id,
+    tokenHash: hashSessionToken(token),
+    createdAt: now.toISOString(),
+    expiresAt,
+    lastSeenAt: now.toISOString(),
+    userAgentHash: crypto.createHash("sha256").update(userAgent).digest("base64url")
+  });
+  writeSessionsStore(sessions);
+  return { token, expiresAt };
+}
+
+function destroySession(req) {
+  const token = readCookie(req, SESSION_COOKIE_NAME);
+  if (!token) return;
+  const tokenHash = hashSessionToken(token);
+  const sessions = readSessionsStore();
+  sessions.sessions = sessions.sessions.filter((session) => session.tokenHash !== tokenHash);
+  writeSessionsStore(sessions);
+}
+
+function currentUser(req) {
+  const token = readCookie(req, SESSION_COOKIE_NAME);
+  if (!token) return null;
+  const tokenHash = hashSessionToken(token);
+  const now = Date.now();
+  const sessions = readSessionsStore();
+  let changed = false;
+  sessions.sessions = sessions.sessions.filter((session) => {
+    const keep = Date.parse(session.expiresAt) > now;
+    if (!keep) changed = true;
+    return keep;
+  });
+  const session = sessions.sessions.find((item) => item.tokenHash === tokenHash);
+  if (!session) {
+    if (changed) writeSessionsStore(sessions);
+    return null;
+  }
+  session.lastSeenAt = new Date().toISOString();
+  changed = true;
+  const user = findUserById(session.userId);
+  if (!user) {
+    sessions.sessions = sessions.sessions.filter((item) => item !== session);
+  }
+  if (changed) writeSessionsStore(sessions);
+  return user || null;
+}
+
+function requireUser(req, res) {
+  const user = currentUser(req);
+  if (user) return user;
+  if (!AUTH_REQUIRED) return DEV_USER;
+  sendJson(res, 401, {
+    error: "auth_required",
+    message: "请先登录 AI Thomas。"
+  });
+  return null;
+}
+
+function readCookie(req, name) {
+  const cookies = String(req.headers.cookie || "").split(/;\s*/).filter(Boolean);
+  for (const cookie of cookies) {
+    const index = cookie.indexOf("=");
+    if (index < 0) continue;
+    const key = cookie.slice(0, index);
+    if (key === name) return decodeURIComponent(cookie.slice(index + 1));
+  }
+  return "";
+}
+
+function isSecureRequest(req) {
+  return req.socket.encrypted ||
+    String(req.headers["x-forwarded-proto"] || "").split(",")[0].trim() === "https" ||
+    readBoolean("COOKIE_SECURE", false);
+}
+
+function setSessionCookie(req, res, token, maxAgeSeconds) {
+  const parts = [
+    `${SESSION_COOKIE_NAME}=${encodeURIComponent(token)}`,
+    "Path=/",
+    `Max-Age=${Math.max(0, Math.floor(maxAgeSeconds))}`,
+    "HttpOnly",
+    "SameSite=Lax"
+  ];
+  if (isSecureRequest(req)) parts.push("Secure");
+  res.setHeader("Set-Cookie", parts.join("; "));
+}
+
+function clearSessionCookie(req, res) {
+  setSessionCookie(req, res, "", 0);
+}
+
+function userConversationDir(userId) {
+  return path.join(CONVERSATIONS_DIR, safePathSegment(userId));
+}
+
+function conversationPath(userId, conversationId) {
+  return path.join(userConversationDir(userId), `${safePathSegment(conversationId)}.json`);
+}
+
+function safePathSegment(value) {
+  const segment = String(value || "").replace(/[^A-Za-z0-9._-]/g, "");
+  if (!segment) throw new Error("Invalid path segment.");
+  return segment;
+}
+
+function createConversation(user, title = "New conversation") {
+  const now = new Date().toISOString();
+  const conversation = {
+    id: crypto.randomUUID(),
+    userId: user.id,
+    title: normalizeTitle(title) || "New conversation",
+    createdAt: now,
+    updatedAt: now,
+    mode: "research-design",
+    workflow: null,
+    messages: []
+  };
+  writeConversation(conversation);
+  return conversation;
+}
+
+function readConversation(user, conversationId) {
+  if (!conversationId) return null;
+  const filePath = conversationPath(user.id, conversationId);
+  const conversation = readJsonFile(filePath, null);
+  if (!conversation || conversation.userId !== user.id || conversation.deletedAt) return null;
+  conversation.messages = Array.isArray(conversation.messages) ? conversation.messages : [];
+  return conversation;
+}
+
+function writeConversation(conversation) {
+  writeJson(conversationPath(conversation.userId, conversation.id), conversation);
+}
+
+function deleteConversation(user, conversationId) {
+  const conversation = readConversation(user, conversationId);
+  if (!conversation) return false;
+  conversation.deletedAt = new Date().toISOString();
+  conversation.updatedAt = conversation.deletedAt;
+  writeConversation(conversation);
+  return true;
+}
+
+function listConversations(user) {
+  ensureDataDir();
+  const dir = userConversationDir(user.id);
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir)
+    .filter((fileName) => fileName.endsWith(".json"))
+    .map((fileName) => readJsonFile(path.join(dir, fileName), null))
+    .filter((conversation) => conversation && conversation.userId === user.id && !conversation.deletedAt)
+    .map((conversation) => ({
+      id: conversation.id,
+      title: conversation.title || "New conversation",
+      createdAt: conversation.createdAt,
+      updatedAt: conversation.updatedAt,
+      messageCount: Array.isArray(conversation.messages) ? conversation.messages.length : 0
+    }))
+    .sort((a, b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || "")));
+}
+
+function serializeConversation(conversation) {
+  return {
+    id: conversation.id,
+    title: conversation.title || "New conversation",
+    createdAt: conversation.createdAt,
+    updatedAt: conversation.updatedAt,
+    mode: conversation.mode || "research-design",
+    workflow: conversation.workflow || null,
+    messages: Array.isArray(conversation.messages) ? conversation.messages : []
+  };
+}
+
+function normalizeTitle(title) {
+  return String(title || "").replace(/\s+/g, " ").trim().slice(0, 80);
+}
+
+function titleFromMessage(message) {
+  const clean = normalizeTitle(message);
+  return clean ? clean.slice(0, 36) : "New conversation";
+}
+
+function makeMessage(role, content, extra = {}) {
+  return {
+    id: crypto.randomUUID(),
+    role,
+    content: String(content || ""),
+    createdAt: new Date().toISOString(),
+    ...extra
+  };
 }
 
 function readUsageStore() {
@@ -589,10 +896,10 @@ function estimateTokensForRequest(messages) {
   return Math.ceil((text.length + MAX_CONTEXT_CHARS + 9000) / 3.5) + 1800;
 }
 
-function checkAndRecordUsage(req, messages) {
+function checkAndRecordUsage(req, messages, user = null) {
   const store = readUsageStore();
   const windows = usageWindow();
-  const key = clientKey(req);
+  const key = user ? `user:${user.id}` : `client:${clientKey(req)}`;
   const estimate = estimateTokensForRequest(messages);
 
   const client = store.clients[key] || {};
@@ -605,10 +912,10 @@ function checkAndRecordUsage(req, messages) {
 
   const retryMessage = "AI Thomas 今天的安全使用额度已到。为了保护 DeepSeek API key，请稍后再试。";
   if (clientHour >= LIMITS.perHour) {
-    return { ok: false, status: 429, message: `这台设备每小时最多 ${LIMITS.perHour} 次请求。请稍后再试。` };
+    return { ok: false, status: 429, message: `这个账号每小时最多 ${LIMITS.perHour} 次请求。请稍后再试。` };
   }
   if (clientDay >= LIMITS.perDay) {
-    return { ok: false, status: 429, message: `这台设备每天最多 ${LIMITS.perDay} 次请求。明天会自动恢复。` };
+    return { ok: false, status: 429, message: `这个账号每天最多 ${LIMITS.perDay} 次请求。明天会自动恢复。` };
   }
   if (globalDay >= LIMITS.globalPerDay) {
     return { ok: false, status: 429, message: retryMessage };
@@ -622,6 +929,7 @@ function checkAndRecordUsage(req, messages) {
     hourCount: clientHour + 1,
     day: windows.day,
     dayCount: clientDay + 1,
+    userId: user?.id || null,
     lastSeenAt: new Date().toISOString()
   };
   store.global = {
@@ -636,10 +944,17 @@ function checkAndRecordUsage(req, messages) {
 }
 
 async function handleApi(req, res) {
-  if (req.method === "GET" && req.url === "/api/status") {
+  const url = new URL(req.url, "http://localhost");
+  const pathname = url.pathname;
+
+  if (req.method === "GET" && pathname === "/api/status") {
     const corpus = loadCorpus();
+    const user = currentUser(req) || (!AUTH_REQUIRED ? DEV_USER : null);
     return sendJson(res, 200, {
       ok: true,
+      authRequired: AUTH_REQUIRED,
+      authenticated: Boolean(user),
+      user: publicUser(user),
       hasApiKey: Boolean(process.env.DEEPSEEK_API_KEY),
       model: MODEL,
       paperCount: corpus.paperCount,
@@ -654,23 +969,182 @@ async function handleApi(req, res) {
     });
   }
 
-  if (req.method === "GET" && req.url === "/api/articles") {
+  if (req.method === "GET" && pathname === "/api/auth/me") {
+    const user = currentUser(req) || (!AUTH_REQUIRED ? DEV_USER : null);
+    return sendJson(res, 200, {
+      authRequired: AUTH_REQUIRED,
+      authenticated: Boolean(user),
+      user: publicUser(user)
+    });
+  }
+
+  if (req.method === "POST" && pathname === "/api/auth/login") {
+    const body = await readRequestBody(req);
+    const payload = safeJson(body, {});
+    const username = normalizeUsername(payload.username);
+    const password = String(payload.password || "");
+    const user = findUserByUsername(username);
+    if (!user || !verifyPassword(password, user.password)) {
+      return sendJson(res, 401, {
+        error: "invalid_credentials",
+        message: "用户名或密码不正确。"
+      });
+    }
+    const session = createSession(user, req);
+    setSessionCookie(req, res, session.token, SESSION_TTL_MS / 1000);
+    return sendJson(res, 200, {
+      ok: true,
+      user: publicUser(user),
+      expiresAt: session.expiresAt
+    });
+  }
+
+  if (req.method === "POST" && pathname === "/api/auth/logout") {
+    destroySession(req);
+    clearSessionCookie(req, res);
+    return sendJson(res, 200, { ok: true });
+  }
+
+  if (req.method === "GET" && pathname === "/api/articles") {
     const corpus = loadCorpus();
     return sendJson(res, 200, { articles: corpus.articles });
   }
 
-  if (req.method === "POST" && req.url === "/api/chat") {
+  if (pathname === "/api/conversations") {
+    const user = requireUser(req, res);
+    if (!user) return;
+
+    if (req.method === "GET") {
+      return sendJson(res, 200, { conversations: listConversations(user) });
+    }
+
+    if (req.method === "POST") {
+      const body = await readRequestBody(req);
+      const payload = safeJson(body, {});
+      const conversation = createConversation(user, payload.title);
+      return sendJson(res, 201, {
+        conversation: serializeConversation(conversation),
+        conversations: listConversations(user)
+      });
+    }
+  }
+
+  if (pathname.startsWith("/api/conversations/")) {
+    const user = requireUser(req, res);
+    if (!user) return;
+
+    const conversationId = decodeURIComponent(pathname.replace("/api/conversations/", ""));
+    let conversation = null;
+    try {
+      conversation = readConversation(user, conversationId);
+    } catch {
+      conversation = null;
+    }
+
+    if (!conversation) {
+      return sendJson(res, 404, { error: "not_found" });
+    }
+
+    if (req.method === "GET") {
+      return sendJson(res, 200, { conversation: serializeConversation(conversation) });
+    }
+
+    if (req.method === "PATCH") {
+      const body = await readRequestBody(req);
+      const payload = safeJson(body, {});
+      const title = normalizeTitle(payload.title);
+      if (title) conversation.title = title;
+      conversation.updatedAt = new Date().toISOString();
+      writeConversation(conversation);
+      return sendJson(res, 200, {
+        conversation: serializeConversation(conversation),
+        conversations: listConversations(user)
+      });
+    }
+
+    if (req.method === "DELETE") {
+      deleteConversation(user, conversationId);
+      return sendJson(res, 200, { ok: true, conversations: listConversations(user) });
+    }
+  }
+
+  if (req.method === "POST" && pathname === "/api/chat") {
     const body = await readRequestBody(req);
     const payload = safeJson(body, {});
-    const messages = Array.isArray(payload.messages) ? payload.messages : [];
     const mode = payload.mode || "research-design";
     const workflow = WORKFLOW_CONFIG[payload.workflow] ? payload.workflow : null;
-    const usage = checkAndRecordUsage(req, messages);
+
+    if (!AUTH_REQUIRED && Array.isArray(payload.messages) && !payload.message && !payload.conversationId) {
+      const messages = payload.messages;
+      const usage = checkAndRecordUsage(req, messages, null);
+      if (!usage.ok) {
+        return sendJson(res, usage.status, { error: "usage_limit_reached", message: usage.message });
+      }
+      const result = await callDeepSeek(messages, mode, workflow);
+      return sendJson(res, result.status, result.body);
+    }
+
+    const user = requireUser(req, res);
+    if (!user) return;
+
+    const message = String(payload.message || "").trim();
+    if (!message) {
+      return sendJson(res, 400, {
+        error: "empty_message",
+        message: "请输入要发送给 AI Thomas 的内容。"
+      });
+    }
+
+    let conversation = null;
+    try {
+      conversation = payload.conversationId ? readConversation(user, payload.conversationId) : null;
+    } catch {
+      conversation = null;
+    }
+    if (payload.conversationId && !conversation) {
+      return sendJson(res, 404, { error: "not_found" });
+    }
+    if (!conversation) {
+      conversation = createConversation(user, titleFromMessage(message));
+    }
+
+    const userMessage = makeMessage("user", message);
+    const messages = [...conversation.messages, userMessage]
+      .filter((item) => ["user", "assistant"].includes(item.role));
+
+    const usage = checkAndRecordUsage(req, messages, user);
     if (!usage.ok) {
       return sendJson(res, usage.status, { error: "usage_limit_reached", message: usage.message });
     }
+
+    conversation.messages.push(userMessage);
+    if (!conversation.title || conversation.title === "New conversation") {
+      conversation.title = titleFromMessage(message);
+    }
+    conversation.mode = mode;
+    conversation.workflow = workflow;
+    conversation.updatedAt = new Date().toISOString();
+    writeConversation(conversation);
+
     const result = await callDeepSeek(messages, mode, workflow);
-    return sendJson(res, result.status, result.body);
+    if (result.status === 200) {
+      const assistantMessage = makeMessage("assistant", result.body.answer || "", {
+        sources: result.body.sources || [],
+        workflow: result.body.workflow || null
+      });
+      conversation.messages.push(assistantMessage);
+      conversation.updatedAt = assistantMessage.createdAt;
+      writeConversation(conversation);
+      return sendJson(res, 200, {
+        ...result.body,
+        conversation: serializeConversation(conversation),
+        conversations: listConversations(user)
+      });
+    }
+    return sendJson(res, result.status, {
+      ...result.body,
+      conversation: serializeConversation(conversation)
+    });
   }
 
   return sendJson(res, 404, { error: "not_found" });
@@ -734,6 +1208,9 @@ function applyCors(req, res) {
   if (!ALLOWED_ORIGINS.includes("*") && !ALLOWED_ORIGINS.includes(origin)) return;
   res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGINS.includes("*") ? "*" : origin);
   res.setHeader("Vary", "Origin");
+  if (!ALLOWED_ORIGINS.includes("*")) {
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+  }
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 }
@@ -773,6 +1250,10 @@ function start(port, attemptsLeft = 12) {
     console.log(`AI Thomas is running at http://${HOST}:${port}`);
     console.log(`Corpus: ${corpusCache.paperCount} downloaded papers, ${corpusCache.chunks.length} local chunks`);
     console.log(`DeepSeek model: ${MODEL}; API key: ${process.env.DEEPSEEK_API_KEY ? "detected" : "missing"}`);
+    console.log(`Auth required: ${AUTH_REQUIRED ? "yes" : "no"}`);
+    if (AUTH_REQUIRED && !process.env.SESSION_SECRET) {
+      console.warn("AUTH_REQUIRED=true but SESSION_SECRET is not set. Set a long random SESSION_SECRET before production use.");
+    }
   });
 }
 

@@ -30,6 +30,20 @@ The GitHub Pages frontend in `docs/` calls the protected backend hosted on Aliyu
 
 The frontend includes five workflow templates: research matrix, concept boundary, variable model, paper pipeline, and paragraph feedback. Each workflow fills a structured prompt, sets the matching research mode, and sends a `workflow` id to `/api/chat`. The backend keeps plain chat backward-compatible while adding workflow-specific output requirements such as tables, actionable steps, Thomas Reasoning, and evidence boundaries.
 
+## Multi-user Sessions
+
+AI Thomas supports invite-only user accounts and server-side conversation history. When `AUTH_REQUIRED=true`, users must sign in before calling `/api/chat` or reading conversations. Conversations are stored under `.data/conversations/<userId>/`, so one user cannot list, read, delete, or continue another user's chat history.
+
+Create and manage accounts locally on the server:
+
+```bash
+node scripts/user-admin.js add <username> [display name]
+node scripts/user-admin.js reset-password <username>
+node scripts/user-admin.js list
+```
+
+Passwords are stored with salted `PBKDF2-SHA256` hashes. Sessions use the `ai_thomas_session` cookie with `HttpOnly`, `SameSite=Lax`, and `Secure` when served over HTTPS or when `COOKIE_SECURE=true`.
+
 ## Local Development
 
 ```bash
@@ -48,14 +62,18 @@ MAX_REQUESTS_PER_HOUR=12
 MAX_REQUESTS_PER_DAY=40
 MAX_GLOBAL_REQUESTS_PER_DAY=120
 MAX_ESTIMATED_TOKENS_PER_MONTH=800000
+AUTH_REQUIRED=true
+SESSION_SECRET=...
+SESSION_TTL_DAYS=7
+COOKIE_SECURE=true
 ```
 
 ## DeepSeek Safety Limits
 
 The backend enforces conservative usage limits before calling DeepSeek:
 
-- 12 requests per hour per client
-- 40 requests per day per client
+- 12 requests per hour per signed-in user
+- 40 requests per day per signed-in user
 - 120 requests per day globally
 - 800,000 estimated tokens per month globally
 
@@ -63,4 +81,4 @@ Usage counters are stored in `.data/usage-limits.json`. On Aliyun, `.data/` is s
 
 ## GitHub Pages
 
-Use `docs/` as the GitHub Pages source. `docs/config.js` points the static frontend to the current HTTPS backend.
+Use `docs/` as the GitHub Pages source for the static copy. The recommended multi-user deployment is the Aliyun same-domain route, for example `/thomas/`, because session cookies are simpler and safer when the frontend and API share an HTTPS origin.

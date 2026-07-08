@@ -1,4 +1,5 @@
-const STORAGE_KEY = "ai-thomas-current-conversation-v2";
+const LEGACY_STORAGE_KEY = "ai-thomas-current-conversation-v2";
+const ACTIVE_CONVERSATION_KEY = "ai-thomas-active-conversation-v1";
 const DEFAULT_MESSAGES = [
   {
     role: "assistant",
@@ -35,12 +36,26 @@ const WORKFLOW_TEMPLATES = {
 };
 
 const state = {
+  user: null,
+  authRequired: true,
+  conversations: [],
+  activeConversationId: loadActiveConversationId(),
   mode: "research-design",
   workflow: null,
-  messages: loadStoredMessages(),
+  messages: [...DEFAULT_MESSAGES],
   busy: false
 };
 
+const loginScreen = document.querySelector("#loginScreen");
+const appShell = document.querySelector("#appShell");
+const loginForm = document.querySelector("#loginForm");
+const loginUsername = document.querySelector("#loginUsername");
+const loginPassword = document.querySelector("#loginPassword");
+const loginError = document.querySelector("#loginError");
+const userBadge = document.querySelector("#userBadge");
+const logoutButton = document.querySelector("#logoutButton");
+const conversationList = document.querySelector("#conversationList");
+const newConversationButton = document.querySelector("#newConversationButton");
 const messageList = document.querySelector("#messageList");
 const composer = document.querySelector("#composer");
 const input = document.querySelector("#messageInput");
@@ -58,9 +73,53 @@ const modelName = document.querySelector("#modelName");
 const keyStatus = document.querySelector("#keyStatus");
 const statusDot = document.querySelector("#statusDot");
 
-renderMessages();
-renderWorkflowButtons();
-loadStatus();
+init();
+
+async function init() {
+  showAppShell(false);
+  renderMessages();
+  renderWorkflowButtons();
+  await loadStatus();
+  await refreshAuth();
+}
+
+loginForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  loginError.textContent = "";
+  const username = loginUsername.value.trim();
+  const password = loginPassword.value;
+  if (!username || !password) {
+    loginError.textContent = "请输入用户名和密码。";
+    return;
+  }
+
+  const result = await apiJson("api/auth/login", {
+    method: "POST",
+    body: { username, password }
+  });
+  if (!result.ok) {
+    loginError.textContent = result.data?.message || "登录失败。";
+    return;
+  }
+  state.user = result.data.user;
+  removeLegacyConversation();
+  loginPassword.value = "";
+  showAppShell(true);
+  await loadConversations();
+});
+
+logoutButton?.addEventListener("click", async () => {
+  await apiJson("api/auth/logout", { method: "POST" });
+  state.user = null;
+  state.conversations = [];
+  state.activeConversationId = null;
+  state.messages = [...DEFAULT_MESSAGES];
+  saveActiveConversationId();
+  renderConversationList();
+  renderMessages();
+  if (state.authRequired) showLogin();
+  else await refreshAuth();
+});
 
 modeGrid.addEventListener("click", (event) => {
   const button = event.target.closest("[data-mode]");
@@ -84,6 +143,25 @@ workflowGrid?.addEventListener("click", (event) => {
   input.setSelectionRange(input.value.length, input.value.length);
 });
 
+conversationList?.addEventListener("click", async (event) => {
+  const deleteButton = event.target.closest("[data-delete-conversation]");
+  if (deleteButton) {
+    event.stopPropagation();
+    const conversationId = deleteButton.dataset.deleteConversation;
+    const ok = window.confirm("删除这个会话？");
+    if (!ok) return;
+    await deleteConversation(conversationId);
+    return;
+  }
+
+  const button = event.target.closest("[data-conversation-id]");
+  if (!button) return;
+  await loadConversation(button.dataset.conversationId);
+});
+
+newConversationButton?.addEventListener("click", () => createConversation());
+clearButton.addEventListener("click", () => createConversation());
+
 if (quickRow) {
   quickRow.addEventListener("click", (event) => {
     const button = event.target.closest("button");
@@ -93,33 +171,46 @@ if (quickRow) {
   });
 }
 
-clearButton.addEventListener("click", () => {
-  state.workflow = null;
-  state.messages = [
-    {
-      role: "assistant",
-      content: "新的对话已开始。"
-    }
-  ];
-  persistConversation();
-  renderWorkflowButtons();
-  renderMessages();
-});
-
 composer.addEventListener("submit", async (event) => {
   event.preventDefault();
   const content = input.value.trim();
   if (!content || state.busy) return;
-  state.messages.push({ role: "user", content });
-  persistConversation();
   input.value = "";
+  state.messages.push({ role: "user", content });
+  state.messages.push({ role: "assistant", content: "正在匹配本地论文语料，并生成研究分析...", loading: true });
   renderMessages();
-  await sendMessage();
+  await sendMessage(content);
 });
+
+async function refreshAuth() {
+  const result = await apiJson("api/auth/me");
+  if (!result.ok || (result.data?.authRequired && !result.data?.authenticated)) {
+    state.authRequired = Boolean(result.data?.authRequired ?? true);
+    showLogin();
+    return;
+  }
+  state.authRequired = Boolean(result.data.authRequired);
+  state.user = result.data.user;
+  removeLegacyConversation();
+  showAppShell(true);
+  await loadConversations();
+}
+
+function showLogin() {
+  showAppShell(false);
+  loginScreen.hidden = false;
+  loginUsername?.focus();
+}
+
+function showAppShell(visible) {
+  if (appShell) appShell.hidden = !visible;
+  if (loginScreen) loginScreen.hidden = visible;
+  if (userBadge) userBadge.textContent = state.user?.displayName || state.user?.username || "Not signed in";
+}
 
 async function loadStatus() {
   try {
-    const response = await fetch(apiUrl("api/status"));
+    const response = await fetch(apiUrl("api/status"), { credentials: "include" });
     const status = await response.json();
     corpusStatus.textContent = `${status.paperCount} 篇 PDF · ${status.chunkCount} 个本地片段`;
     paperCount.textContent = status.paperCount;
@@ -139,51 +230,149 @@ async function loadStatus() {
   }
 }
 
-async function sendMessage() {
+async function loadConversations() {
+  const result = await apiJson("api/conversations");
+  if (!result.ok) {
+    if (result.status === 401) showLogin();
+    return;
+  }
+  state.conversations = result.data.conversations || [];
+  renderConversationList();
+  const activeStillExists = state.conversations.some((item) => item.id === state.activeConversationId);
+  if (activeStillExists) {
+    await loadConversation(state.activeConversationId);
+  } else if (state.conversations.length) {
+    await loadConversation(state.conversations[0].id);
+  } else {
+    state.activeConversationId = null;
+    state.messages = [...DEFAULT_MESSAGES];
+    saveActiveConversationId();
+    renderMessages();
+  }
+}
+
+async function createConversation() {
+  const result = await apiJson("api/conversations", {
+    method: "POST",
+    body: { title: "New conversation" }
+  });
+  if (!result.ok) {
+    if (result.status === 401) showLogin();
+    return;
+  }
+  state.conversations = result.data.conversations || [];
+  state.activeConversationId = result.data.conversation.id;
+  state.messages = result.data.conversation.messages?.length ? result.data.conversation.messages : [...DEFAULT_MESSAGES];
+  saveActiveConversationId();
+  renderConversationList();
+  renderMessages();
+}
+
+async function loadConversation(conversationId) {
+  if (!conversationId) return;
+  const result = await apiJson(`api/conversations/${encodeURIComponent(conversationId)}`);
+  if (!result.ok) {
+    if (result.status === 401) showLogin();
+    if (result.status === 404 && state.activeConversationId === conversationId) {
+      state.activeConversationId = null;
+      saveActiveConversationId();
+      await loadConversations();
+    }
+    return;
+  }
+  const conversation = result.data.conversation;
+  state.activeConversationId = conversation.id;
+  state.mode = conversation.mode || state.mode;
+  state.workflow = conversation.workflow || state.workflow;
+  state.messages = conversation.messages?.length ? conversation.messages : [...DEFAULT_MESSAGES];
+  saveActiveConversationId();
+  setMode(state.mode);
+  renderWorkflowButtons();
+  renderConversationList();
+  renderMessages();
+}
+
+async function deleteConversation(conversationId) {
+  const result = await apiJson(`api/conversations/${encodeURIComponent(conversationId)}`, {
+    method: "DELETE"
+  });
+  if (!result.ok) {
+    if (result.status === 401) showLogin();
+    return;
+  }
+  state.conversations = result.data.conversations || [];
+  if (state.activeConversationId === conversationId) {
+    state.activeConversationId = state.conversations[0]?.id || null;
+  }
+  saveActiveConversationId();
+  renderConversationList();
+  if (state.activeConversationId) await loadConversation(state.activeConversationId);
+  else {
+    state.messages = [...DEFAULT_MESSAGES];
+    renderMessages();
+  }
+}
+
+async function sendMessage(content) {
   state.busy = true;
   sendButton.disabled = true;
-  const loadingMessage = { role: "assistant", content: "正在匹配本地论文语料，并生成研究分析..." };
-  state.messages.push(loadingMessage);
-  renderMessages();
 
   try {
-    const response = await fetch(apiUrl("api/chat"), {
+    const result = await apiJson("api/chat", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+      body: {
+        conversationId: state.activeConversationId,
+        message: content,
         mode: state.mode,
-        workflow: state.workflow,
-        messages: state.messages.filter((message) => message !== loadingMessage)
-      })
+        workflow: state.workflow
+      }
     });
-    const data = await response.json();
-    state.messages = state.messages.filter((message) => message !== loadingMessage);
-    if (!response.ok) {
+    state.messages = state.messages.filter((message) => !message.loading);
+    if (!result.ok) {
+      if (result.status === 401) {
+        showLogin();
+        return;
+      }
       state.messages.push({
         role: "system",
-        content: data.message || "请求失败，请稍后再试。"
+        content: result.data?.message || "请求失败，请稍后再试。"
       });
-      persistConversation();
     } else {
-      state.messages.push({
-        role: "assistant",
-        content: data.answer || "DeepSeek 没有返回正文。",
-        sources: data.sources || []
-      });
-      persistConversation();
+      state.activeConversationId = result.data.conversation.id;
+      state.conversations = result.data.conversations || state.conversations;
+      state.messages = result.data.conversation.messages || [];
+      saveActiveConversationId();
+      renderConversationList();
     }
   } catch (error) {
-    state.messages = state.messages.filter((message) => message !== loadingMessage);
+    state.messages = state.messages.filter((message) => !message.loading);
     state.messages.push({
       role: "system",
       content: `本地服务请求失败：${error.message}`
     });
-    persistConversation();
   } finally {
     state.busy = false;
     sendButton.disabled = false;
     renderMessages();
   }
+}
+
+async function apiJson(path, options = {}) {
+  const request = {
+    method: options.method || "GET",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" }
+  };
+  if (options.body !== undefined) request.body = JSON.stringify(options.body);
+  const response = await fetch(apiUrl(path), request);
+  const text = await response.text();
+  let data = {};
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    data = { message: text };
+  }
+  return { ok: response.ok, status: response.status, data };
 }
 
 function apiUrl(path) {
@@ -213,36 +402,46 @@ function renderWorkflowButtons() {
   }
 }
 
-function loadStoredMessages() {
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [...DEFAULT_MESSAGES];
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed) || !parsed.length) return [...DEFAULT_MESSAGES];
-    return parsed
-      .filter((message) => ["user", "assistant", "system"].includes(message.role))
-      .map((message) => ({
-        role: message.role,
-        content: String(message.content || ""),
-        sources: Array.isArray(message.sources) ? message.sources : undefined
-      }))
-      .filter((message) => message.content.trim());
-  } catch {
-    return [...DEFAULT_MESSAGES];
+function renderConversationList() {
+  if (!conversationList) return;
+  conversationList.innerHTML = "";
+  if (!state.conversations.length) {
+    const empty = document.createElement("p");
+    empty.className = "conversation-empty";
+    empty.textContent = "还没有会话";
+    conversationList.appendChild(empty);
+    return;
   }
-}
 
-function persistConversation() {
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state.messages.slice(-40)));
-  } catch {
-    // If local storage is unavailable, the live conversation still works.
+  for (const conversation of state.conversations) {
+    const item = document.createElement("button");
+    item.className = "conversation-button";
+    item.type = "button";
+    item.dataset.conversationId = conversation.id;
+    item.classList.toggle("active", conversation.id === state.activeConversationId);
+
+    const title = document.createElement("span");
+    title.className = "conversation-title";
+    title.textContent = conversation.title || "New conversation";
+
+    const meta = document.createElement("span");
+    meta.className = "conversation-meta";
+    meta.textContent = `${conversation.messageCount || 0} messages`;
+
+    const deleteButton = document.createElement("span");
+    deleteButton.className = "conversation-delete";
+    deleteButton.dataset.deleteConversation = conversation.id;
+    deleteButton.textContent = "Delete";
+
+    item.append(title, meta, deleteButton);
+    conversationList.appendChild(item);
   }
 }
 
 function renderMessages() {
   messageList.innerHTML = "";
-  for (const message of state.messages) {
+  const messages = state.messages.length ? state.messages : DEFAULT_MESSAGES;
+  for (const message of messages) {
     const article = document.createElement("article");
     article.className = `message ${message.role}`;
 
@@ -304,6 +503,34 @@ function renderMessages() {
     messageList.appendChild(article);
   }
   messageList.scrollTop = messageList.scrollHeight;
+}
+
+function loadActiveConversationId() {
+  try {
+    return window.localStorage.getItem(ACTIVE_CONVERSATION_KEY) || null;
+  } catch {
+    return null;
+  }
+}
+
+function saveActiveConversationId() {
+  try {
+    if (state.activeConversationId) {
+      window.localStorage.setItem(ACTIVE_CONVERSATION_KEY, state.activeConversationId);
+    } else {
+      window.localStorage.removeItem(ACTIVE_CONVERSATION_KEY);
+    }
+  } catch {
+    // The live session still works without local storage.
+  }
+}
+
+function removeLegacyConversation() {
+  try {
+    window.localStorage.removeItem(LEGACY_STORAGE_KEY);
+  } catch {
+    // Nothing to clean up.
+  }
 }
 
 async function copyToClipboard(text) {
