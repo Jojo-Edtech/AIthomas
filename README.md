@@ -58,10 +58,10 @@ DEEPSEEK_API_KEY=...
 DEEPSEEK_MODEL=deepseek-v4-flash
 HOST=127.0.0.1
 PORT=8787
-MAX_REQUESTS_PER_HOUR=12
-MAX_REQUESTS_PER_DAY=40
-MAX_GLOBAL_REQUESTS_PER_DAY=120
-MAX_ESTIMATED_TOKENS_PER_MONTH=800000
+MAX_REQUESTS_PER_HOUR=4
+MAX_REQUESTS_PER_DAY=12
+MAX_GLOBAL_REQUESTS_PER_DAY=30
+MAX_ESTIMATED_TOKENS_PER_MONTH=500000
 ACCESS_MODE=anonymous
 SESSION_SECRET=...
 SESSION_TTL_DAYS=7
@@ -73,10 +73,10 @@ COOKIE_SECURE=true
 
 The backend enforces conservative usage limits before calling DeepSeek:
 
-- 12 requests per hour per anonymous visitor or signed-in user
-- 40 requests per day per anonymous visitor or signed-in user
-- 120 requests per day globally
-- 800,000 estimated tokens per month globally
+- 4 requests per hour per anonymous visitor or signed-in user
+- 12 requests per day per anonymous visitor or signed-in user
+- 30 requests per day globally
+- 500,000 estimated tokens per month globally
 
 Usage counters are stored in `.data/usage-limits.json`. On Aliyun, `.data/` is symlinked to shared storage so deployments do not reset the counters.
 
