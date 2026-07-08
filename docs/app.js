@@ -222,10 +222,130 @@ function formatModelName(model) {
 }
 
 function formatMessage(text) {
-  const escaped = escapeHtml(String(text || ""));
-  return escaped
-    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-    .replace(/`([^`]+)`/g, "<code>$1</code>");
+  const lines = String(text || "").replace(/\r/g, "").split("\n");
+  const html = [];
+  let index = 0;
+
+  while (index < lines.length) {
+    const line = lines[index].trim();
+
+    if (!line) {
+      index += 1;
+      continue;
+    }
+
+    if (/^```/.test(line)) {
+      const codeLines = [];
+      index += 1;
+      while (index < lines.length && !/^```/.test(lines[index].trim())) {
+        codeLines.push(lines[index]);
+        index += 1;
+      }
+      if (index < lines.length) index += 1;
+      html.push(`<pre><code>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
+      continue;
+    }
+
+    if (/^---+$/.test(line)) {
+      html.push("<hr>");
+      index += 1;
+      continue;
+    }
+
+    if (/^#{2,4}\s+/.test(line)) {
+      const level = Math.min(line.match(/^#+/)[0].length, 4);
+      html.push(`<h${level}>${formatInline(line.replace(/^#{2,4}\s+/, ""))}</h${level}>`);
+      index += 1;
+      continue;
+    }
+
+    if (isMarkdownTableStart(lines, index)) {
+      const tableRows = [];
+      tableRows.push(splitTableRow(lines[index]));
+      index += 2;
+      while (index < lines.length && isTableRow(lines[index])) {
+        tableRows.push(splitTableRow(lines[index]));
+        index += 1;
+      }
+      html.push(renderTable(tableRows));
+      continue;
+    }
+
+    if (/^[-*]\s+/.test(line)) {
+      const items = [];
+      while (index < lines.length && /^[-*]\s+/.test(lines[index].trim())) {
+        items.push(lines[index].trim().replace(/^[-*]\s+/, ""));
+        index += 1;
+      }
+      html.push(`<ul>${items.map((item) => `<li>${formatInline(item)}</li>`).join("")}</ul>`);
+      continue;
+    }
+
+    if (/^\d+\.\s+/.test(line)) {
+      const items = [];
+      while (index < lines.length && /^\d+\.\s+/.test(lines[index].trim())) {
+        items.push(lines[index].trim().replace(/^\d+\.\s+/, ""));
+        index += 1;
+      }
+      html.push(`<ol>${items.map((item) => `<li>${formatInline(item)}</li>`).join("")}</ol>`);
+      continue;
+    }
+
+    const paragraph = [];
+    while (
+      index < lines.length &&
+      lines[index].trim() &&
+      !/^---+$/.test(lines[index].trim()) &&
+      !/^```/.test(lines[index].trim()) &&
+      !/^#{2,4}\s+/.test(lines[index].trim()) &&
+      !isMarkdownTableStart(lines, index) &&
+      !/^[-*]\s+/.test(lines[index].trim()) &&
+      !/^\d+\.\s+/.test(lines[index].trim())
+    ) {
+      paragraph.push(lines[index].trim());
+      index += 1;
+    }
+    html.push(`<p>${formatInline(paragraph.join(" "))}</p>`);
+  }
+
+  return html.join("");
+}
+
+function isMarkdownTableStart(lines, index) {
+  return isTableRow(lines[index]) && index + 1 < lines.length && isTableSeparator(lines[index + 1]);
+}
+
+function isTableRow(line) {
+  return /^\s*\|.+\|\s*$/.test(line || "");
+}
+
+function isTableSeparator(line) {
+  return /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(line || "");
+}
+
+function splitTableRow(line) {
+  return String(line || "")
+    .trim()
+    .replace(/^\|/, "")
+    .replace(/\|$/, "")
+    .split("|")
+    .map((cell) => cell.trim());
+}
+
+function renderTable(rows) {
+  if (!rows.length) return "";
+  const [header, ...body] = rows;
+  const head = header.map((cell) => `<th>${formatInline(cell)}</th>`).join("");
+  const rowsHtml = body
+    .map((row) => `<tr>${row.map((cell) => `<td>${formatInline(cell)}</td>`).join("")}</tr>`)
+    .join("");
+  return `<div class="table-wrap"><table><thead><tr>${head}</tr></thead><tbody>${rowsHtml}</tbody></table></div>`;
+}
+
+function formatInline(text) {
+  return escapeHtml(String(text || ""))
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
 }
 
 function escapeHtml(text) {

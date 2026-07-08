@@ -381,6 +381,7 @@ p {
 }
 
 .message.assistant {
+  max-width: min(94%, 960px);
   margin-right: auto;
   background: #f7f9f7;
 }
@@ -403,9 +404,57 @@ p {
 
 .message-content {
   overflow-wrap: anywhere;
-  white-space: pre-wrap;
   font-size: 15px;
   line-height: 1.58;
+}
+
+.message-content > *:first-child {
+  margin-top: 0;
+}
+
+.message-content > *:last-child {
+  margin-bottom: 0;
+}
+
+.message-content p {
+  margin: 0 0 10px;
+}
+
+.message-content h2,
+.message-content h3,
+.message-content h4 {
+  margin: 16px 0 8px;
+  color: #263039;
+  line-height: 1.24;
+  letter-spacing: 0;
+}
+
+.message-content h2 {
+  font-size: 18px;
+}
+
+.message-content h3 {
+  font-size: 16px;
+}
+
+.message-content h4 {
+  font-size: 15px;
+}
+
+.message-content ul,
+.message-content ol {
+  margin: 8px 0 12px;
+  padding-left: 22px;
+}
+
+.message-content li {
+  margin: 5px 0;
+}
+
+.message-content hr {
+  margin: 16px 0;
+  border: 0;
+  border-top: 1px solid var(--line);
 }
 
 .message-content strong {
@@ -421,6 +470,81 @@ p {
   border: 1px solid var(--line);
   border-radius: 5px;
   background: #f6f7f4;
+}
+
+.message-content pre {
+  margin: 12px 0 14px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: #24323a;
+  background: #f4f7f5;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.message-content pre code {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.table-wrap {
+  width: 100%;
+  margin: 12px 0 14px;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.message-content table {
+  width: 100%;
+  min-width: 620px;
+  border-collapse: collapse;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.message-content th,
+.message-content td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  vertical-align: top;
+  text-align: left;
+}
+
+.message-content th:last-child,
+.message-content td:last-child {
+  border-right: 0;
+}
+
+.message-content tr:last-child td {
+  border-bottom: 0;
+}
+
+.message-content th {
+  color: #24323a;
+  background: #edf4f2;
+  font-weight: 820;
+}
+
+.message-content tbody tr:nth-child(even) td {
+  background: #fbfcfa;
+}
+
+.message.user .table-wrap {
+  border-color: rgba(255, 255, 255, 0.38);
+}
+
+.message.user .message-content th,
+.message.user .message-content td {
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .source-list {
