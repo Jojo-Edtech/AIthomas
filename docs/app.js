@@ -77,7 +77,7 @@ const statusDot = document.querySelector("#statusDot");
 init();
 
 async function init() {
-  showAppShell(false);
+  hidePrimaryScreens();
   renderMessages();
   renderWorkflowButtons();
   await loadStatus();
@@ -190,7 +190,13 @@ async function refreshAuth() {
     return;
   }
   state.accessMode = result.data?.accessMode || "anonymous";
-  if (!result.ok || (state.accessMode === "login" && !result.data?.authenticated)) {
+  if (!result.ok) {
+    state.authRequired = Boolean(result.data?.authRequired ?? true);
+    if (state.accessMode === "login") showLogin();
+    else hidePrimaryScreens();
+    return;
+  }
+  if (state.accessMode === "login" && !result.data?.authenticated) {
     state.authRequired = Boolean(result.data?.authRequired ?? true);
     showLogin();
     return;
@@ -203,18 +209,35 @@ async function refreshAuth() {
 }
 
 function showLogin() {
-  showAppShell(false);
+  hidePrimaryScreens();
   loginScreen.hidden = false;
   loginUsername?.focus();
 }
 
+function hidePrimaryScreens() {
+  if (appShell) appShell.hidden = true;
+  if (loginScreen) loginScreen.hidden = true;
+}
+
 function showAppShell(visible) {
-  if (appShell) appShell.hidden = !visible;
-  if (loginScreen) loginScreen.hidden = visible;
+  if (!visible) {
+    hidePrimaryScreens();
+    return;
+  }
+  if (appShell) appShell.hidden = false;
+  if (loginScreen) loginScreen.hidden = true;
   if (userBadge) userBadge.textContent = state.user?.displayName || state.user?.username || "Not signed in";
   if (logoutButton) {
     logoutButton.textContent = state.user?.anonymous ? "重置访客身份" : "退出登录";
   }
+}
+
+async function handleUnauthorized() {
+  if (state.accessMode === "login") {
+    showLogin();
+    return;
+  }
+  await refreshAuth();
 }
 
 async function loadStatus() {
@@ -242,7 +265,7 @@ async function loadStatus() {
 async function loadConversations() {
   const result = await apiJson("api/conversations");
   if (!result.ok) {
-    if (result.status === 401) showLogin();
+    if (result.status === 401) await handleUnauthorized();
     return;
   }
   state.conversations = result.data.conversations || [];
@@ -266,7 +289,7 @@ async function createConversation() {
     body: { title: "New conversation" }
   });
   if (!result.ok) {
-    if (result.status === 401) showLogin();
+    if (result.status === 401) await handleUnauthorized();
     return;
   }
   state.conversations = result.data.conversations || [];
@@ -281,7 +304,7 @@ async function loadConversation(conversationId) {
   if (!conversationId) return;
   const result = await apiJson(`api/conversations/${encodeURIComponent(conversationId)}`);
   if (!result.ok) {
-    if (result.status === 401) showLogin();
+    if (result.status === 401) await handleUnauthorized();
     if (result.status === 404 && state.activeConversationId === conversationId) {
       state.activeConversationId = null;
       saveActiveConversationId();
@@ -306,7 +329,7 @@ async function deleteConversation(conversationId) {
     method: "DELETE"
   });
   if (!result.ok) {
-    if (result.status === 401) showLogin();
+    if (result.status === 401) await handleUnauthorized();
     return;
   }
   state.conversations = result.data.conversations || [];
@@ -339,7 +362,7 @@ async function sendMessage(content) {
     state.messages = state.messages.filter((message) => !message.loading);
     if (!result.ok) {
       if (result.status === 401) {
-        showLogin();
+        await handleUnauthorized();
         return;
       }
       state.messages.push({
