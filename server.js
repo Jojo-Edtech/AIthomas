@@ -132,8 +132,8 @@ function loadCorpus() {
   const articleByRow = new Map(articles.map((article) => [String(article.row), article]));
   const chunks = [];
 
-  chunks.push(...chunkSyntheticSource("distilled", "Thomas思维蒸馏_38篇版", distilled, SYNTHETIC_CHUNK_MAX_CHARS));
-  chunks.push(...chunkSyntheticSource("matrix", "Thomas一作论文阅读矩阵_38篇PDF", matrix, SYNTHETIC_CHUNK_MAX_CHARS));
+  chunks.push(...chunkSyntheticSource("distilled", "导师论文语料研究模式摘要", distilled, SYNTHETIC_CHUNK_MAX_CHARS));
+  chunks.push(...chunkSyntheticSource("matrix", "一作论文阅读矩阵_38篇PDF", matrix, SYNTHETIC_CHUNK_MAX_CHARS));
 
   const textDir = TEXT_DIRS.find((candidate) => fs.existsSync(candidate));
   if (textDir) {
@@ -311,7 +311,7 @@ const WORKFLOW_CONFIG = {
 2. 一个 Markdown 表格，按“研究对象 × 产出类型”组织，列包含：研究对象、框架/定义、测量/量表、机制检验、课程/干预、可写 paper。
 3. 3 个可写 paper 方向，每个方向说明理论入口、方法、贡献。
 4. 下一步行动，用 3-5 条 bullet。
-5. 证据边界：说明哪些判断来自 Thomas 一作核心语料，哪些只是迁移建议。`
+5. 证据边界：说明哪些判断来自一作核心语料，哪些只是迁移建议。`
   },
   "concept-boundary": {
     label: "概念边界",
@@ -322,7 +322,7 @@ const WORKFLOW_CONFIG = {
 2. 一个 Markdown 定义对照表，列包含：概念、核心定义、边界、行动要求、测量指标、常见误区。
 3. 边界判断：什么情况应使用概念 A，什么情况应使用概念 B。
 4. 测量建议：维度、条目来源、验证方法。
-5. Thomas Reasoning 对应在哪里：说明定义、框架、测量三步如何体现。
+5. 导师反馈依据：说明定义、框架、测量三步为什么适合这个研究问题。
 6. 证据边界。`
   },
   "variable-model": {
@@ -335,7 +335,7 @@ const WORKFLOW_CONFIG = {
 3. 机制路径，用文本箭头或代码块表示。
 4. 3-6 条假设草案，必须可直接改写进论文。
 5. 方法建议：样本、设计、分析方法、稳健性检查。
-6. Thomas Reasoning 对应在哪里与证据边界。`
+6. 导师反馈依据与证据边界。`
   },
   "paper-pipeline": {
     label: "论文序列",
@@ -346,7 +346,7 @@ const WORKFLOW_CONFIG = {
 2. 一个 Markdown 时间线表，列包含：时间、paper、核心问题、理论/框架、方法、预期贡献、可积累资产。
 3. 说明 1 年、3 年、5 年阶段目标。
 4. 说明哪些资产会复用，例如量表、框架、数据集、课程材料。
-5. Thomas Reasoning 对应在哪里与证据边界。`
+5. 导师反馈依据与证据边界。`
   },
   "paragraph-feedback": {
     label: "段落反馈",
@@ -357,7 +357,7 @@ const WORKFLOW_CONFIG = {
 2. 改写版本，保持学术表达清晰直接。
 3. 可保留内容。
 4. 需要删除、弱化或移动的内容。
-5. Thomas Reasoning 对应在哪里：说明如何回到教育问题、机制、贡献和制度含义。
+5. 导师反馈依据：说明如何回到教育问题、机制、贡献和制度含义。
 6. 如用户没有给段落，先要求用户贴段落，但仍可给出需要检查的维度表。`
   }
 };
@@ -464,7 +464,7 @@ function buildSystemPrompt(mode, selectedChunks, workflow) {
 ${workflowConfig ? `当前研究工具：${workflowConfig.label}\n${workflowConfig.instruction}` : ""}
 语料边界：核心语料为已下载并抽取的 38 篇 Thomas K. F. Chiu 一作 PDF；扩展语料为 12 篇 WoS Reprint Addresses 标记 Thomas K. F. Chiu 为通讯作者的 PDF。另有 6 篇 Thomas 一作论文和 22 篇通讯作者候选文献暂不在知识底座中，不能编造其细节。REL01 Fu (2025)、REL02 Liu et al. (2025) 与 M01 AERE reviewer 稿件是本地隔离材料，不属于 AI Thomas 证据。回答时要区分“一作核心语料”和“通讯作者扩展语料”。
 
-核心蒸馏：
+本地研究模式摘要：
 ${corpus.distilled.slice(0, 9000)}
 
 本轮检索到的相关来源：
@@ -472,12 +472,13 @@ ${selectedContext}
 
 回答要求：
 - 用中文回答，除非用户明确要求英文。
-- 不冒充 Thomas 本人；使用“基于 Thomas 一作论文的思维模式”这类表述。
+- 不冒充 Thomas 本人，不模拟导师人格，不使用“Thomas 式”“像 Thomas 一样”“Thomas Reasoning”这类个人化或崇拜式表述。
+- 定位是 24 小时科研导师助手：基于本地论文语料、教育研究规范和课题组常见讨论方式，帮助用户回应 research idea、拆问题、给写作和方法反馈。
 - 主要转述和综合，不大段引用论文原文。
 - 对研究问题给出可执行框架：教育问题、对象、机制、变量/维度、方法、伦理/well-being/policy。
 - 回答要像研究工作台输出，不要像长篇散文。优先使用清楚的小标题、短段落、项目符号和 Markdown 表格。
 - 当用户询问路径、策略、比较、概念边界、变量设计、论文结构、研究计划或“可复制做法”时，必须给出至少一个 Markdown 表格。
-- 表格要有实用列名，例如：模式、Thomas 式做法、为什么有效、可复制动作、注意风险；不要只放空泛标签。
+- 表格要有实用列名，例如：问题类型、可借鉴研究做法、为什么有效、可执行动作、注意风险；不要只放空泛标签。
 - 复杂回答建议结构：一句话结论 -> 表格/矩阵 -> 3-5 条行动步骤 -> 证据边界或注意事项。
 - 如果回答超过 5 个要点，优先压缩成表格；避免连续 4 段以上的大段文字。
 - 如果用户给论文段落，直接给更清晰、更像学术写作的版本。`;

@@ -3,7 +3,7 @@ const ACTIVE_CONVERSATION_KEY = "ai-thomas-active-conversation-v1";
 const DEFAULT_MESSAGES = [
   {
     role: "assistant",
-    content: "你好，我是 AI Thomas。你可以直接把研究题目、段落、变量想法或追问发给我。"
+    content: "你好，我是 AI Thomas，一个基于本地论文语料的科研导师助手。你可以把研究 idea、论文段落、变量想法或追问发给我。"
   }
 ];
 
@@ -11,27 +11,27 @@ const WORKFLOW_TEMPLATES = {
   "research-matrix": {
     mode: "research-design",
     label: "研究矩阵",
-    prompt: "请用 Thomas Reasoning，把下面的研究方向拆成“对象 × 产出类型”的研究矩阵。\n\n研究方向：\n\n输出请包括：一句话结论、研究矩阵表、3 个可写 paper 方向、下一步行动。"
+    prompt: "请作为科研导师助手，把下面的研究方向拆成“对象 × 产出类型”的研究矩阵。\n\n研究方向：\n\n输出请包括：一句话结论、研究矩阵表、3 个可写 paper 方向、下一步行动、证据边界。"
   },
   "concept-boundary": {
     mode: "theory-frame",
     label: "概念边界",
-    prompt: "请用 Thomas Reasoning，帮我区分下面概念的边界，并说明如何定义、测量和写进论文。\n\n概念：\n\n输出请包括：定义对照表、边界判断、测量建议、Thomas Reasoning 对应在哪里。"
+    prompt: "请作为科研导师助手，帮我区分下面概念的边界，并说明如何定义、测量和写进论文。\n\n概念：\n\n输出请包括：定义对照表、边界判断、测量建议、导师反馈依据、证据边界。"
   },
   "variable-model": {
     mode: "research-design",
     label: "变量模型",
-    prompt: "请用 Thomas Reasoning，把下面的研究想法转成变量模型、机制路径、假设草案和方法建议。\n\n研究想法：\n\n输出请包括：变量表、机制路径、假设草案、方法建议、注意风险。"
+    prompt: "请作为科研导师助手，把下面的研究想法转成变量模型、机制路径、假设草案和方法建议。\n\n研究想法：\n\n输出请包括：变量表、机制路径、假设草案、方法建议、注意风险。"
   },
   "paper-pipeline": {
     mode: "literature-position",
     label: "论文序列",
-    prompt: "请用 Thomas Reasoning，为下面的研究方向设计一个 1 年 / 3 年 / 5 年论文序列。\n\n研究方向：\n\n输出请包括：时间线表、每篇 paper 的理论/方法/贡献、可积累资产、证据边界。"
+    prompt: "请作为科研导师助手，为下面的研究方向设计一个 1 年 / 3 年 / 5 年论文序列。\n\n研究方向：\n\n输出请包括：时间线表、每篇 paper 的理论/方法/贡献、可积累资产、证据边界。"
   },
   "paragraph-feedback": {
     mode: "writing-feedback",
     label: "段落反馈",
-    prompt: "请用 Thomas Reasoning，诊断并改写下面的论文段落。请指出逻辑问题、哪些内容保留、哪些需要删改。\n\n段落：\n\n输出请包括：问题诊断表、改写版本、可保留内容、需删除或弱化内容。"
+    prompt: "请作为科研导师助手，诊断并改写下面的论文段落。请指出逻辑问题、哪些内容保留、哪些需要删改。\n\n段落：\n\n输出请包括：问题诊断表、改写版本、可保留内容、需删除或弱化内容。"
   }
 };
 

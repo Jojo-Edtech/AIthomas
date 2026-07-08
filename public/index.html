@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Thomas Reasoning</title>
+    <title>AI Thomas Research Mentor</title>
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
@@ -11,7 +11,7 @@
       <form class="login-card" id="loginForm">
         <div class="brand-mark" aria-hidden="true">T</div>
         <h1>AI Thomas</h1>
-        <p>Sign in to your private Thomas Reasoning workspace.</p>
+        <p>Sign in to the private research mentor workspace.</p>
         <label for="loginUsername">Username</label>
         <input id="loginUsername" name="username" autocomplete="username" required>
         <label for="loginPassword">Password</label>
@@ -27,7 +27,7 @@
           <div class="brand-mark" aria-hidden="true">T</div>
           <div>
             <h1>AI Thomas</h1>
-            <p>Thomas Reasoning Workbench</p>
+            <p>Research Mentor Workspace</p>
           </div>
         </div>
 
@@ -125,8 +125,8 @@
       <main class="workbench">
         <header class="workbench-header">
           <div>
-            <p class="eyebrow">Corpus of Thomas's Studies</p>
-            <h2>Thomas Reasoning</h2>
+            <p class="eyebrow">Research Mentor Corpus</p>
+            <h2>AI Research Mentor</h2>
           </div>
           <div class="header-actions">
             <span class="model-pill" id="modelName">DeepSeek V4 Flash</span>
@@ -135,13 +135,13 @@
         </header>
 
         <div class="workbench-body">
-          <section class="chat-session" aria-label="与 AI Thomas 持续对话">
+          <section class="chat-session" aria-label="与 AI Thomas 持续讨论科研问题">
             <div class="message-list" id="messageList" aria-live="polite"></div>
 
             <form class="composer" id="composer">
               <label class="composer-label" for="messageInput">Message</label>
               <div class="workflow-chip" id="workflowChip" hidden></div>
-              <textarea id="messageInput" rows="3" placeholder="输入你的问题，继续和 AI Thomas 对话"></textarea>
+              <textarea id="messageInput" rows="3" placeholder="输入研究 idea、论文段落、变量想法或追问"></textarea>
               <button id="sendButton" type="submit">发送</button>
             </form>
           </section>

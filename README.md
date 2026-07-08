@@ -1,6 +1,6 @@
-# Thomas Reasoning
+# AI Thomas Research Mentor
 
-AI Thomas is a research reasoning workbench distilled from a local Thomas K. F. Chiu literature corpus.
+AI Thomas is a research mentor workspace grounded in a local Thomas K. F. Chiu literature corpus. It is designed to help users discuss research ideas, paragraph drafts, variable models, and paper plans; it does not simulate or represent Thomas K. F. Chiu as a person.
 
 ## Public GitHub Version
 
@@ -28,7 +28,7 @@ The GitHub Pages frontend in `docs/` calls the protected backend hosted on Aliyu
 
 ## Research Workflows
 
-The frontend includes five workflow templates: research matrix, concept boundary, variable model, paper pipeline, and paragraph feedback. Each workflow fills a structured prompt, sets the matching research mode, and sends a `workflow` id to `/api/chat`. The backend keeps plain chat backward-compatible while adding workflow-specific output requirements such as tables, actionable steps, Thomas Reasoning, and evidence boundaries.
+The frontend includes five workflow templates: research matrix, concept boundary, variable model, paper pipeline, and paragraph feedback. Each workflow fills a structured prompt, sets the matching research mode, and sends a `workflow` id to `/api/chat`. The backend keeps plain chat backward-compatible while adding workflow-specific output requirements such as tables, actionable steps, research mentor rationale, and evidence boundaries.
 
 ## Anonymous Guest Sessions
 
