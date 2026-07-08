@@ -178,7 +178,7 @@ p {
 }
 
 .brand-block h1 {
-  font-size: 25px;
+  font-size: 23px;
   line-height: 1.1;
   letter-spacing: 0;
 }
@@ -472,7 +472,7 @@ p {
 
 .stat-list dd {
   margin: 0;
-  font-size: 20px;
+  font-size: 19px;
   font-weight: 820;
   color: var(--ink);
 }
@@ -498,7 +498,7 @@ p {
   align-items: flex-start;
   justify-content: space-between;
   gap: 22px;
-  padding: 28px 32px 22px;
+  padding: 24px 28px 18px;
   border-bottom: 1px solid var(--line);
   background: var(--surface);
 }
@@ -511,7 +511,7 @@ p {
 
 .workbench-header h2 {
   margin-top: 7px;
-  font-size: clamp(24px, 3vw, 34px);
+  font-size: clamp(22px, 2.2vw, 29px);
   line-height: 1.12;
   letter-spacing: 0;
 }
@@ -554,29 +554,29 @@ p {
 
 .workbench-body {
   display: grid;
-  grid-template-columns: minmax(640px, 1040px);
+  grid-template-columns: minmax(640px, 1180px);
   justify-content: center;
   align-items: stretch;
   min-height: 0;
   overflow: hidden;
-  padding: 30px 32px;
+  padding: 22px 26px;
   background: var(--bg);
 }
 
 .chat-session {
   display: grid;
-  grid-template-rows: minmax(360px, 1fr) auto;
-  gap: 14px;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 10px;
   width: 100%;
   height: 100%;
   min-height: 0;
   max-height: 100%;
-  padding: 18px;
+  padding: 14px;
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);
-  box-shadow: var(--shadow);
+  box-shadow: 0 12px 30px rgba(28, 37, 44, 0.07);
 }
 
 .message-list {
@@ -586,15 +586,15 @@ p {
   scrollbar-gutter: stable;
   width: 100%;
   margin: 0 auto;
-  padding: 12px 8px 14px;
+  padding: 8px 4px 10px;
   border-bottom: 1px solid var(--line);
 }
 
 .message {
   width: fit-content;
-  max-width: min(82%, 760px);
-  margin-bottom: 14px;
-  padding: 11px 13px;
+  max-width: min(88%, 840px);
+  margin-bottom: 12px;
+  padding: 10px 12px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);
@@ -609,7 +609,7 @@ p {
 }
 
 .message.assistant {
-  max-width: min(94%, 960px);
+  max-width: min(100%, 1080px);
   margin-right: auto;
   border-color: #d4dfdc;
   background: #fbfcfa;
@@ -625,7 +625,7 @@ p {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 7px;
+  margin-bottom: 6px;
 }
 
 .message-role {
@@ -639,7 +639,7 @@ p {
 }
 
 .copy-button {
-  min-height: 26px;
+  min-height: 24px;
   padding: 0 8px;
   border: 1px solid var(--line);
   border-radius: 7px;
@@ -658,7 +658,7 @@ p {
 .message-content {
   overflow-wrap: anywhere;
   font-size: 15px;
-  line-height: 1.58;
+  line-height: 1.56;
 }
 
 .message-content > *:first-child {
@@ -670,42 +670,42 @@ p {
 }
 
 .message-content p {
-  margin: 0 0 10px;
+  margin: 0 0 9px;
 }
 
 .message-content h2,
 .message-content h3,
 .message-content h4 {
-  margin: 16px 0 8px;
+  margin: 14px 0 7px;
   color: #263039;
   line-height: 1.24;
   letter-spacing: 0;
 }
 
 .message-content h2 {
-  font-size: 18px;
+  font-size: 16.5px;
 }
 
 .message-content h3 {
-  font-size: 16px;
+  font-size: 15.5px;
 }
 
 .message-content h4 {
-  font-size: 15px;
+  font-size: 14.5px;
 }
 
 .message-content ul,
 .message-content ol {
-  margin: 8px 0 12px;
+  margin: 7px 0 10px;
   padding-left: 22px;
 }
 
 .message-content li {
-  margin: 5px 0;
+  margin: 4px 0;
 }
 
 .message-content hr {
-  margin: 16px 0;
+  margin: 14px 0;
   border: 0;
   border-top: 1px solid var(--line);
 }
@@ -726,8 +726,8 @@ p {
 }
 
 .message-content pre {
-  margin: 12px 0 14px;
-  padding: 12px 14px;
+  margin: 10px 0 12px;
+  padding: 11px 12px;
   overflow-x: auto;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -746,7 +746,7 @@ p {
 
 .table-wrap {
   width: 100%;
-  margin: 12px 0 14px;
+  margin: 10px 0 12px;
   overflow-x: auto;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -756,7 +756,7 @@ p {
 
 .message-content table {
   width: 100%;
-  min-width: 620px;
+  min-width: 600px;
   border-collapse: collapse;
   font-size: 13px;
   line-height: 1.45;
@@ -764,7 +764,7 @@ p {
 
 .message-content th,
 .message-content td {
-  padding: 9px 10px;
+  padding: 8px 9px;
   border-bottom: 1px solid var(--line);
   border-right: 1px solid var(--line);
   vertical-align: top;
@@ -806,8 +806,8 @@ p {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 16px;
-  padding-top: 13px;
+  margin-top: 13px;
+  padding-top: 11px;
   border-top: 1px solid var(--line);
 }
 
@@ -831,25 +831,32 @@ p {
 
 .composer {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 88px;
-  gap: 10px;
-  padding-top: 12px;
+  grid-template-columns: minmax(0, 1fr) 76px;
+  gap: 8px;
+  position: relative;
+  padding-top: 8px;
   border-top: 1px solid var(--line);
   background: var(--surface);
 }
 
 .composer-label {
-  grid-column: 1 / -1;
-  color: #3d4852;
-  font-size: 12px;
-  font-weight: 820;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  border: 0;
+  white-space: nowrap;
 }
 
 .workflow-chip {
   grid-column: 1 / -1;
   justify-self: start;
   max-width: 100%;
-  padding: 6px 9px;
+  padding: 5px 8px;
   border: 1px solid #9bc9c3;
   border-radius: 8px;
   color: var(--teal-dark);
@@ -864,14 +871,15 @@ p {
 
 .composer textarea {
   width: 100%;
-  min-height: 84px;
-  max-height: 180px;
+  min-height: 52px;
+  max-height: 132px;
   resize: none;
   border: 1px solid var(--line-strong);
   border-radius: 8px;
-  padding: 12px 13px;
+  padding: 10px 12px;
   color: var(--ink);
   background: #fff;
+  line-height: 1.45;
 }
 
 .composer textarea::placeholder {
@@ -883,7 +891,7 @@ p {
 }
 
 .composer button {
-  min-height: 84px;
+  min-height: 52px;
   border: 1px solid var(--teal);
   color: #fff;
   background: var(--teal);
@@ -1060,7 +1068,7 @@ p {
 
   .workbench-header h2 {
     margin-top: 4px;
-    font-size: 26px;
+    font-size: 24px;
   }
 
   .header-actions {
@@ -1074,9 +1082,9 @@ p {
 
   .chat-session {
     grid-template-rows: minmax(0, 1fr) auto;
-    gap: 10px;
+    gap: 8px;
     min-height: 0;
-    padding: 12px;
+    padding: 10px;
     box-shadow: none;
   }
 
@@ -1087,7 +1095,7 @@ p {
 
   .message {
     max-width: min(92%, 720px);
-    margin-bottom: 11px;
+    margin-bottom: 10px;
   }
 
   .message.assistant {
@@ -1095,18 +1103,18 @@ p {
   }
 
   .composer {
-    grid-template-columns: minmax(0, 1fr) 84px;
+    grid-template-columns: minmax(0, 1fr) 76px;
     gap: 8px;
-    padding-top: 10px;
+    padding-top: 8px;
   }
 
   .composer textarea {
-    min-height: 72px;
-    max-height: 150px;
+    min-height: 52px;
+    max-height: 128px;
   }
 
   .composer button {
-    min-height: 72px;
+    min-height: 52px;
   }
 }
 
@@ -1201,7 +1209,7 @@ p {
   }
 
   .workbench-header h2 {
-    font-size: 23px;
+    font-size: 22px;
   }
 
   .header-actions {
@@ -1238,12 +1246,12 @@ p {
   }
 
   .message-content {
-    font-size: 14px;
-    line-height: 1.56;
+    font-size: 14.5px;
+    line-height: 1.54;
   }
 
   .message-content table {
-    min-width: 560px;
+    min-width: 540px;
   }
 
   .source-list {
@@ -1255,10 +1263,10 @@ p {
   }
 
   .composer textarea {
-    min-height: 74px;
+    min-height: 52px;
   }
 
   .composer button {
-    min-height: 46px;
+    min-height: 42px;
   }
 }

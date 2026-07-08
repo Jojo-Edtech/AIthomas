@@ -142,6 +142,7 @@ workflowGrid?.addEventListener("click", (event) => {
   setMode(template.mode);
   renderWorkflowButtons();
   input.value = template.prompt;
+  resizeInput();
   input.focus();
   input.setSelectionRange(input.value.length, input.value.length);
 });
@@ -170,20 +171,39 @@ if (quickRow) {
     const button = event.target.closest("button");
     if (!button) return;
     input.value = button.textContent.trim();
+    resizeInput();
     input.focus();
   });
 }
+
+input.addEventListener("input", resizeInput);
+window.addEventListener("resize", resizeInput);
+
+input.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" || event.shiftKey || event.isComposing) return;
+  event.preventDefault();
+  if (!input.value.trim() || state.busy) return;
+  composer.requestSubmit();
+});
 
 composer.addEventListener("submit", async (event) => {
   event.preventDefault();
   const content = input.value.trim();
   if (!content || state.busy) return;
   input.value = "";
+  resizeInput();
   state.messages.push({ role: "user", content });
   state.messages.push({ role: "assistant", content: "正在匹配本地论文语料，并生成研究分析...", loading: true });
   renderMessages();
   await sendMessage(content);
 });
+
+function resizeInput() {
+  if (!input) return;
+  input.style.height = "auto";
+  const maxHeight = Number.parseFloat(getComputedStyle(input).maxHeight) || 132;
+  input.style.height = `${Math.min(input.scrollHeight, maxHeight)}px`;
+}
 
 async function refreshAuth() {
   const result = await apiJson("api/auth/me");
