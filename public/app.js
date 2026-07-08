@@ -1,5 +1,6 @@
 const LEGACY_STORAGE_KEY = "ai-thomas-current-conversation-v2";
 const ACTIVE_CONVERSATION_KEY = "ai-thomas-active-conversation-v1";
+const API_VISITOR_KEY = "ai-thomas-api-visitor-v1";
 const DEFAULT_MESSAGES = [
   {
     role: "assistant",
@@ -110,7 +111,8 @@ loginForm?.addEventListener("submit", async (event) => {
 });
 
 logoutButton?.addEventListener("click", async () => {
-  await apiJson("api/auth/logout", { method: "POST" });
+  forgetApiVisitorId();
+  await apiJson("api/auth/logout", { method: "POST", skipVisitor: true });
   state.user = null;
   state.conversations = [];
   state.activeConversationId = null;
@@ -185,7 +187,7 @@ composer.addEventListener("submit", async (event) => {
 
 async function refreshAuth() {
   const result = await apiJson("api/auth/me");
-  if (result.data?.accessMode !== "open" && isCrossOriginApi()) {
+  if (result.data?.accessMode !== "open" && isCrossOriginApi() && !result.data?.allowCrossOriginApp) {
     window.location.href = appBaseUrl();
     return;
   }
@@ -242,14 +244,19 @@ async function handleUnauthorized() {
 
 async function loadStatus() {
   try {
-    const response = await fetch(apiUrl("api/status"), { credentials: "include" });
+    const response = await fetch(apiUrl("api/status"), {
+      credentials: "include",
+      headers: apiHeaders()
+    });
     const status = await response.json();
     corpusStatus.textContent = `${status.paperCount} 篇 PDF · ${status.chunkCount} 个本地片段`;
     paperCount.textContent = status.paperCount;
     chunkCount.textContent = status.chunkCount;
     missingCount.textContent = status.missingCount;
     modelName.textContent = formatModelName(status.model);
-    keyStatus.textContent = status.hasApiKey ? "DeepSeek API 已连接" : "DeepSeek API 未连接";
+    const providerLabel = formatProviderName(status.provider);
+    const quotaLabel = status.freeQuotaProtected ? " · 免费额度保护" : "";
+    keyStatus.textContent = status.hasApiKey ? `${providerLabel} API 已连接${quotaLabel}` : `${providerLabel} API 未连接`;
     keyStatus.classList.toggle("ok", status.hasApiKey);
     keyStatus.classList.toggle("missing", !status.hasApiKey);
     statusDot.classList.toggle("ok", status.hasApiKey);
@@ -393,7 +400,7 @@ async function apiJson(path, options = {}) {
   const request = {
     method: options.method || "GET",
     credentials: "include",
-    headers: { "Content-Type": "application/json" }
+    headers: apiHeaders(options)
   };
   if (options.body !== undefined) request.body = JSON.stringify(options.body);
   const response = await fetch(apiUrl(path), request);
@@ -405,6 +412,46 @@ async function apiJson(path, options = {}) {
     data = { message: text };
   }
   return { ok: response.ok, status: response.status, data };
+}
+
+function apiHeaders(options = {}) {
+  const headers = { "Content-Type": "application/json" };
+  const visitorId = options.skipVisitor ? "" : getApiVisitorId();
+  if (visitorId) headers["X-AI-Thomas-Visitor"] = visitorId;
+  return headers;
+}
+
+function getApiVisitorId() {
+  try {
+    let visitorId = window.localStorage.getItem(API_VISITOR_KEY);
+    if (!isVisitorId(visitorId)) {
+      visitorId = createVisitorId();
+      window.localStorage.setItem(API_VISITOR_KEY, visitorId);
+    }
+    return visitorId;
+  } catch {
+    return "";
+  }
+}
+
+function forgetApiVisitorId() {
+  try {
+    window.localStorage.removeItem(API_VISITOR_KEY);
+  } catch {
+    // Reset still works when local storage is unavailable.
+  }
+}
+
+function createVisitorId() {
+  if (window.crypto?.randomUUID) return `anon_${window.crypto.randomUUID().replace(/-/g, "")}`;
+  const random = Array.from(window.crypto?.getRandomValues?.(new Uint8Array(18)) || [])
+    .map((value) => value.toString(16).padStart(2, "0"))
+    .join("");
+  return `anon_${random || `${Date.now()}${Math.random().toString(16).slice(2)}`}`;
+}
+
+function isVisitorId(value) {
+  return /^anon_[A-Za-z0-9_-]{16,}$/.test(String(value || ""));
 }
 
 function apiUrl(path) {
@@ -605,11 +652,18 @@ function roleLabel(role) {
 
 function formatModelName(model) {
   if (!model) return "DeepSeek";
-  return model
+  const shortName = String(model).includes("/") ? String(model).split("/").pop() : String(model);
+  return shortName
     .replace("deepseek-", "DeepSeek ")
     .replace("v4", "V4")
     .replace("-pro", " Pro")
     .replace("-flash", " Flash");
+}
+
+function formatProviderName(provider) {
+  if (provider === "modelscope") return "ModelScope";
+  if (provider === "deepseek") return "DeepSeek";
+  return "AI";
 }
 
 function formatMessage(text) {

@@ -1,0 +1,18 @@
+name = "ai-thomas-modelscope-api"
+main = "worker/index.mjs"
+compatibility_date = "2026-07-01"
+workers_dev = true
+preview_urls = false
+
+[vars]
+MODELSCOPE_MODEL = "deepseek-ai/DeepSeek-V3.2"
+MAX_REQUESTS_PER_HOUR = "8"
+MAX_REQUESTS_PER_DAY = "20"
+MAX_GLOBAL_REQUESTS_PER_DAY = "300"
+MODELSCOPE_FREE_DAILY_CALLS = "2000"
+MODELSCOPE_MAX_TOKENS = "1800"
+ALLOWED_ORIGINS = "https://jojo-edtech.github.io,http://localhost:8913,http://127.0.0.1:8913"
+
+[[kv_namespaces]]
+binding = "AI_THOMAS_KV"
+id = "8e06611543f045d48029352dec61b873"

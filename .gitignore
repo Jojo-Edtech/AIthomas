@@ -12,3 +12,4 @@ knowledge/extracted_text/
 *.log
 tmp/
 .data/
+.wrangler/

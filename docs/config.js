@@ -1,1 +1,1 @@
-window.AI_THOMAS_API_BASE = "https://threats-blogs-pull-females.trycloudflare.com";
+window.AI_THOMAS_API_BASE = "https://ai-thomas-modelscope-api.xinyanzjo.workers.dev";

@@ -6,12 +6,12 @@ AI Thomas is a research mentor workspace grounded in a local Thomas K. F. Chiu l
 
 This repository is safe to publish because it excludes:
 
-- DeepSeek API keys and `.env`
+- DeepSeek / ModelScope API keys and `.env`
 - PDF files
 - full-text extracted paper chunks
 - reviewer manuscripts
 
-The GitHub Pages frontend in `docs/` calls the protected backend hosted on Aliyun. The backend keeps the DeepSeek key and full local corpus private.
+The GitHub Pages frontend in `docs/` calls the protected Cloudflare Worker backend. The Worker keeps the ModelScope token private, stores anonymous visitor conversations in Cloudflare KV, and enforces hard request limits before calling ModelScope.
 
 ## Current Corpus Boundary
 
@@ -80,6 +80,17 @@ The backend enforces conservative usage limits before calling DeepSeek:
 
 Usage counters are stored in `.data/usage-limits.json`. On Aliyun, `.data/` is symlinked to shared storage so deployments do not reset the counters.
 
-## GitHub Pages
+## GitHub Pages + Cloudflare Worker
 
-Use `docs/` as the GitHub Pages source for the static copy. The recommended multi-user deployment is the Aliyun same-domain route, for example `/thomas/`, because session cookies are simpler and safer when the frontend and API share an HTTPS origin.
+Use `docs/` as the GitHub Pages source for the public static app. `docs/config.js` points the frontend to:
+
+```js
+window.AI_THOMAS_API_BASE = "https://ai-thomas-modelscope-api.xinyanzjo.workers.dev";
+```
+
+Worker deployment uses `wrangler.toml`, Cloudflare KV, and a secret named `MODELSCOPE_API_KEY`. The token is not committed to GitHub. Current Worker safety limits are:
+
+- 8 requests per hour per anonymous visitor
+- 20 requests per day per anonymous visitor
+- 300 requests per day globally
+- 2,000 ModelScope free daily calls as a hard upper guard
