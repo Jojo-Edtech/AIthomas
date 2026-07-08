@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
-    <section class="login-screen" id="loginScreen">
+    <section class="login-screen" id="loginScreen" hidden>
       <form class="login-card" id="loginForm">
         <div class="brand-mark" aria-hidden="true">T</div>
         <h1>AI Thomas</h1>
@@ -40,10 +40,10 @@
           <p class="corpus-line" id="corpusStatus">正在读取本地论文语料</p>
         </section>
 
-        <section class="sidebar-section account-section" aria-label="当前账号">
-          <h2>当前账号</h2>
+        <section class="sidebar-section account-section" aria-label="当前工作区">
+          <h2>当前工作区</h2>
           <p class="user-badge" id="userBadge">Not signed in</p>
-          <button class="logout-button" id="logoutButton" type="button">退出登录</button>
+          <button class="logout-button" id="logoutButton" type="button">重置访客身份</button>
         </section>
 
         <section class="sidebar-section conversation-section" aria-label="会话记录">

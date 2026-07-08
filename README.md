@@ -30,11 +30,11 @@ The GitHub Pages frontend in `docs/` calls the protected backend hosted on Aliyu
 
 The frontend includes five workflow templates: research matrix, concept boundary, variable model, paper pipeline, and paragraph feedback. Each workflow fills a structured prompt, sets the matching research mode, and sends a `workflow` id to `/api/chat`. The backend keeps plain chat backward-compatible while adding workflow-specific output requirements such as tables, actionable steps, Thomas Reasoning, and evidence boundaries.
 
-## Multi-user Sessions
+## Anonymous Guest Sessions
 
-AI Thomas supports invite-only user accounts and server-side conversation history. When `AUTH_REQUIRED=true`, users must sign in before calling `/api/chat` or reading conversations. Conversations are stored under `.data/conversations/<userId>/`, so one user cannot list, read, delete, or continue another user's chat history.
+AI Thomas defaults to anonymous guest workspaces. With `ACCESS_MODE=anonymous`, anyone with the link can use the app without signing in. The backend creates a secure `ai_thomas_session` cookie for each browser profile and stores that visitor's conversations under `.data/conversations/<anonymousUserId>/`, so one visitor cannot list, read, delete, or continue another visitor's chat history.
 
-Create and manage accounts locally on the server:
+Anonymous identity is browser-cookie based: clearing cookies, using private browsing, or changing devices creates a new workspace. If invite-only accounts are needed later, set `ACCESS_MODE=login` and manage accounts locally on the server:
 
 ```bash
 node scripts/user-admin.js add <username> [display name]
@@ -42,7 +42,7 @@ node scripts/user-admin.js reset-password <username>
 node scripts/user-admin.js list
 ```
 
-Passwords are stored with salted `PBKDF2-SHA256` hashes. Sessions use the `ai_thomas_session` cookie with `HttpOnly`, `SameSite=Lax`, and `Secure` when served over HTTPS or when `COOKIE_SECURE=true`.
+Account passwords are stored with salted `PBKDF2-SHA256` hashes. All sessions use the `ai_thomas_session` cookie with `HttpOnly`, `SameSite=Lax`, and `Secure` when served over HTTPS or when `COOKIE_SECURE=true`.
 
 ## Local Development
 
@@ -62,9 +62,10 @@ MAX_REQUESTS_PER_HOUR=12
 MAX_REQUESTS_PER_DAY=40
 MAX_GLOBAL_REQUESTS_PER_DAY=120
 MAX_ESTIMATED_TOKENS_PER_MONTH=800000
-AUTH_REQUIRED=true
+ACCESS_MODE=anonymous
 SESSION_SECRET=...
 SESSION_TTL_DAYS=7
+ANONYMOUS_TTL_DAYS=30
 COOKIE_SECURE=true
 ```
 
@@ -72,8 +73,8 @@ COOKIE_SECURE=true
 
 The backend enforces conservative usage limits before calling DeepSeek:
 
-- 12 requests per hour per signed-in user
-- 40 requests per day per signed-in user
+- 12 requests per hour per anonymous visitor or signed-in user
+- 40 requests per day per anonymous visitor or signed-in user
 - 120 requests per day globally
 - 800,000 estimated tokens per month globally
 

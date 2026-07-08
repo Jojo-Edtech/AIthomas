@@ -37,6 +37,7 @@ const WORKFLOW_TEMPLATES = {
 
 const state = {
   user: null,
+  accessMode: "anonymous",
   authRequired: true,
   conversations: [],
   activeConversationId: loadActiveConversationId(),
@@ -117,7 +118,7 @@ logoutButton?.addEventListener("click", async () => {
   saveActiveConversationId();
   renderConversationList();
   renderMessages();
-  if (state.authRequired) showLogin();
+  if (state.accessMode === "login") showLogin();
   else await refreshAuth();
 });
 
@@ -184,11 +185,12 @@ composer.addEventListener("submit", async (event) => {
 
 async function refreshAuth() {
   const result = await apiJson("api/auth/me");
-  if (result.data?.authRequired && isCrossOriginApi()) {
+  if (result.data?.accessMode !== "open" && isCrossOriginApi()) {
     window.location.href = appBaseUrl();
     return;
   }
-  if (!result.ok || (result.data?.authRequired && !result.data?.authenticated)) {
+  state.accessMode = result.data?.accessMode || "anonymous";
+  if (!result.ok || (state.accessMode === "login" && !result.data?.authenticated)) {
     state.authRequired = Boolean(result.data?.authRequired ?? true);
     showLogin();
     return;
@@ -210,6 +212,9 @@ function showAppShell(visible) {
   if (appShell) appShell.hidden = !visible;
   if (loginScreen) loginScreen.hidden = visible;
   if (userBadge) userBadge.textContent = state.user?.displayName || state.user?.username || "Not signed in";
+  if (logoutButton) {
+    logoutButton.textContent = state.user?.anonymous ? "重置访客身份" : "退出登录";
+  }
 }
 
 async function loadStatus() {

@@ -32,9 +32,13 @@ const USAGE_FILE = path.join(DATA_DIR, "usage-limits.json");
 const USERS_FILE = path.join(DATA_DIR, "users.json");
 const SESSIONS_FILE = path.join(DATA_DIR, "sessions.json");
 const CONVERSATIONS_DIR = path.join(DATA_DIR, "conversations");
-const AUTH_REQUIRED = readBoolean("AUTH_REQUIRED", false);
+const LEGACY_AUTH_REQUIRED = readBoolean("AUTH_REQUIRED", false);
+const ACCESS_MODE = parseAccessMode(process.env.ACCESS_MODE || (LEGACY_AUTH_REQUIRED ? "login" : "anonymous"));
+const AUTH_REQUIRED = ACCESS_MODE === "login";
+const ANONYMOUS_MODE = ACCESS_MODE === "anonymous";
 const SESSION_COOKIE_NAME = "ai_thomas_session";
 const SESSION_TTL_MS = readPositiveInt("SESSION_TTL_DAYS", 7) * 24 * 60 * 60 * 1000;
+const ANONYMOUS_TTL_MS = readPositiveInt("ANONYMOUS_TTL_DAYS", 30) * 24 * 60 * 60 * 1000;
 const SESSION_SECRET = process.env.SESSION_SECRET || "ai-thomas-dev-session-secret";
 const DEV_USER = {
   id: "local-dev",
@@ -64,6 +68,7 @@ const MIME_TYPES = {
 };
 
 let corpusCache = null;
+let lastAnonymousCleanupAt = 0;
 
 function loadDotEnv(filePath) {
   if (!fs.existsSync(filePath)) return;
@@ -99,6 +104,12 @@ function readBoolean(name, fallback) {
   const value = process.env[name];
   if (value === undefined) return fallback;
   return /^(1|true|yes|on)$/i.test(String(value).trim());
+}
+
+function parseAccessMode(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  if (["anonymous", "login", "open"].includes(normalized)) return normalized;
+  return "anonymous";
 }
 
 function readText(filePath, fallback = "") {
@@ -594,7 +605,8 @@ function publicUser(user) {
   return {
     id: user.id,
     username: user.username,
-    displayName: user.displayName || user.username
+    displayName: user.displayName || user.username,
+    anonymous: Boolean(user.anonymous)
   };
 }
 
@@ -631,9 +643,23 @@ function findUserByUsername(username) {
 }
 
 function findUserById(userId) {
-  if (userId === DEV_USER.id && !AUTH_REQUIRED) return DEV_USER;
+  if (userId === DEV_USER.id && ACCESS_MODE === "open") return DEV_USER;
+  if (ANONYMOUS_MODE && isAnonymousUserId(userId)) return anonymousUser(userId);
   const store = readUsersStore();
   return store.users.find((user) => user.id === userId && !user.disabled) || null;
+}
+
+function isAnonymousUserId(userId) {
+  return /^anon_[A-Za-z0-9_-]{16,}$/.test(String(userId || ""));
+}
+
+function anonymousUser(userId = `anon_${crypto.randomBytes(18).toString("base64url")}`) {
+  return {
+    id: userId,
+    username: "anonymous",
+    displayName: "Guest workspace",
+    anonymous: true
+  };
 }
 
 function normalizeUsername(username) {
@@ -660,11 +686,12 @@ function hashSessionToken(token) {
     .digest("base64url");
 }
 
-function createSession(user, req) {
+function createSession(user, req, options = {}) {
   const token = crypto.randomBytes(32).toString("base64url");
   const now = new Date();
   const sessions = readSessionsStore();
-  const expiresAt = new Date(now.getTime() + SESSION_TTL_MS).toISOString();
+  const ttlMs = options.ttlMs || SESSION_TTL_MS;
+  const expiresAt = new Date(now.getTime() + ttlMs).toISOString();
   const userAgent = String(req.headers["user-agent"] || "").slice(0, 160);
   sessions.sessions = sessions.sessions
     .filter((session) => Date.parse(session.expiresAt) > now.getTime())
@@ -672,6 +699,7 @@ function createSession(user, req) {
   sessions.sessions.push({
     id: crypto.randomUUID(),
     userId: user.id,
+    kind: options.kind || (user.anonymous ? "anonymous" : "login"),
     tokenHash: hashSessionToken(token),
     createdAt: now.toISOString(),
     expiresAt,
@@ -679,7 +707,18 @@ function createSession(user, req) {
     userAgentHash: crypto.createHash("sha256").update(userAgent).digest("base64url")
   });
   writeSessionsStore(sessions);
-  return { token, expiresAt };
+  return { token, expiresAt, ttlMs };
+}
+
+function createAnonymousSession(req, res) {
+  cleanupExpiredAnonymousConversations();
+  const user = anonymousUser();
+  const session = createSession(user, req, {
+    kind: "anonymous",
+    ttlMs: ANONYMOUS_TTL_MS
+  });
+  setSessionCookie(req, res, session.token, ANONYMOUS_TTL_MS / 1000);
+  return user;
 }
 
 function destroySession(req) {
@@ -721,7 +760,8 @@ function currentUser(req) {
 function requireUser(req, res) {
   const user = currentUser(req);
   if (user) return user;
-  if (!AUTH_REQUIRED) return DEV_USER;
+  if (ANONYMOUS_MODE) return createAnonymousSession(req, res);
+  if (ACCESS_MODE === "open") return DEV_USER;
   sendJson(res, 401, {
     error: "auth_required",
     message: "请先登录 AI Thomas。"
@@ -863,6 +903,39 @@ function makeMessage(role, content, extra = {}) {
   };
 }
 
+function cleanupExpiredAnonymousConversations() {
+  const now = Date.now();
+  if (now - lastAnonymousCleanupAt < 60 * 60 * 1000) return;
+  lastAnonymousCleanupAt = now;
+  ensureDataDir();
+  if (!fs.existsSync(CONVERSATIONS_DIR)) return;
+
+  const sessions = readJsonFile(SESSIONS_FILE, { sessions: [] });
+  const activeAnonymousIds = new Set(
+    (sessions.sessions || [])
+      .filter((session) => session.kind === "anonymous" && Date.parse(session.expiresAt) > now)
+      .map((session) => session.userId)
+  );
+  const cutoff = now - ANONYMOUS_TTL_MS;
+
+  for (const name of fs.readdirSync(CONVERSATIONS_DIR)) {
+    if (!isAnonymousUserId(name) || activeAnonymousIds.has(name)) continue;
+    const dir = path.join(CONVERSATIONS_DIR, name);
+    let newest = 0;
+    try {
+      for (const fileName of fs.readdirSync(dir)) {
+        if (!fileName.endsWith(".json")) continue;
+        const conversation = readJsonFile(path.join(dir, fileName), null);
+        const time = Date.parse(conversation?.updatedAt || conversation?.createdAt || "");
+        if (Number.isFinite(time)) newest = Math.max(newest, time);
+      }
+      if (!newest || newest < cutoff) fs.rmSync(dir, { recursive: true, force: true });
+    } catch {
+      // Cleanup is best-effort; a failed cleanup should never block chat.
+    }
+  }
+}
+
 function readUsageStore() {
   ensureDataDir();
   const store = safeJson(readText(USAGE_FILE), null);
@@ -949,9 +1022,10 @@ async function handleApi(req, res) {
 
   if (req.method === "GET" && pathname === "/api/status") {
     const corpus = loadCorpus();
-    const user = currentUser(req) || (!AUTH_REQUIRED ? DEV_USER : null);
+    const user = currentUser(req) || (ACCESS_MODE === "open" ? DEV_USER : null);
     return sendJson(res, 200, {
       ok: true,
+      accessMode: ACCESS_MODE,
       authRequired: AUTH_REQUIRED,
       authenticated: Boolean(user),
       user: publicUser(user),
@@ -970,8 +1044,11 @@ async function handleApi(req, res) {
   }
 
   if (req.method === "GET" && pathname === "/api/auth/me") {
-    const user = currentUser(req) || (!AUTH_REQUIRED ? DEV_USER : null);
+    const user = currentUser(req) ||
+      (ANONYMOUS_MODE ? createAnonymousSession(req, res) : null) ||
+      (ACCESS_MODE === "open" ? DEV_USER : null);
     return sendJson(res, 200, {
+      accessMode: ACCESS_MODE,
       authRequired: AUTH_REQUIRED,
       authenticated: Boolean(user),
       user: publicUser(user)
@@ -1074,7 +1151,7 @@ async function handleApi(req, res) {
     const mode = payload.mode || "research-design";
     const workflow = WORKFLOW_CONFIG[payload.workflow] ? payload.workflow : null;
 
-    if (!AUTH_REQUIRED && Array.isArray(payload.messages) && !payload.message && !payload.conversationId) {
+    if (ACCESS_MODE === "open" && Array.isArray(payload.messages) && !payload.message && !payload.conversationId) {
       const messages = payload.messages;
       const usage = checkAndRecordUsage(req, messages, null);
       if (!usage.ok) {
@@ -1250,9 +1327,9 @@ function start(port, attemptsLeft = 12) {
     console.log(`AI Thomas is running at http://${HOST}:${port}`);
     console.log(`Corpus: ${corpusCache.paperCount} downloaded papers, ${corpusCache.chunks.length} local chunks`);
     console.log(`DeepSeek model: ${MODEL}; API key: ${process.env.DEEPSEEK_API_KEY ? "detected" : "missing"}`);
-    console.log(`Auth required: ${AUTH_REQUIRED ? "yes" : "no"}`);
-    if (AUTH_REQUIRED && !process.env.SESSION_SECRET) {
-      console.warn("AUTH_REQUIRED=true but SESSION_SECRET is not set. Set a long random SESSION_SECRET before production use.");
+    console.log(`Access mode: ${ACCESS_MODE}`);
+    if (ACCESS_MODE !== "open" && !process.env.SESSION_SECRET) {
+      console.warn(`${ACCESS_MODE} mode is enabled but SESSION_SECRET is not set. Set a long random SESSION_SECRET before production use.`);
     }
   });
 }
