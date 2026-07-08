@@ -19,6 +19,12 @@ const BASE_URL = process.env.DEEPSEEK_BASE_URL || "https://api.deepseek.com";
 const HOST = process.env.HOST || "127.0.0.1";
 const START_PORT = Number(process.env.PORT || 8787);
 const MAX_CONTEXT_CHARS = 12000;
+const MAX_SELECTED_CHUNKS = 12;
+const MAX_CHUNKS_PER_PAPER = 3;
+const SYNTHETIC_CHUNK_MAX_CHARS = 900;
+const PAPER_CHUNK_MAX_CHARS = 950;
+const PAPER_CHUNK_MIN_CHARS = 360;
+const PAPER_CHUNK_OVERLAP_CHARS = 180;
 const MAX_BODY_BYTES = 1024 * 1024;
 const DATA_DIR = process.env.DATA_DIR || path.join(ROOT_DIR, ".data");
 const USAGE_FILE = path.join(DATA_DIR, "usage-limits.json");
@@ -96,8 +102,8 @@ function loadCorpus() {
   const articleByRow = new Map(articles.map((article) => [String(article.row), article]));
   const chunks = [];
 
-  chunks.push(...chunkSyntheticSource("distilled", "Thomas思维蒸馏_38篇版", distilled, 1200));
-  chunks.push(...chunkSyntheticSource("matrix", "Thomas一作论文阅读矩阵_38篇PDF", matrix, 1200));
+  chunks.push(...chunkSyntheticSource("distilled", "Thomas思维蒸馏_38篇版", distilled, SYNTHETIC_CHUNK_MAX_CHARS));
+  chunks.push(...chunkSyntheticSource("matrix", "Thomas一作论文阅读矩阵_38篇PDF", matrix, SYNTHETIC_CHUNK_MAX_CHARS));
 
   const textDir = TEXT_DIRS.find((candidate) => fs.existsSync(candidate));
   if (textDir) {
@@ -174,16 +180,53 @@ function chunkPaperText(article, fileName, rawText) {
   let buffer = "";
   let index = 1;
   for (const paragraph of paragraphs) {
-    if ((buffer + "\n\n" + paragraph).length > 1600 && buffer.length > 450) {
+    if (paragraph.length > PAPER_CHUNK_MAX_CHARS) {
+      if (buffer) {
+        chunks.push(makePaperChunk(article, fileName, index, buffer));
+        index += 1;
+        buffer = "";
+      }
+      for (const slice of splitWithOverlap(paragraph, PAPER_CHUNK_MAX_CHARS, PAPER_CHUNK_OVERLAP_CHARS)) {
+        chunks.push(makePaperChunk(article, fileName, index, slice));
+        index += 1;
+      }
+      continue;
+    }
+
+    const next = buffer ? `${buffer}\n\n${paragraph}` : paragraph;
+    if (next.length > PAPER_CHUNK_MAX_CHARS && buffer.length > PAPER_CHUNK_MIN_CHARS) {
       chunks.push(makePaperChunk(article, fileName, index, buffer));
       index += 1;
-      buffer = paragraph;
+      const carry = overlapTail(buffer, PAPER_CHUNK_OVERLAP_CHARS);
+      buffer = carry ? `${carry}\n\n${paragraph}` : paragraph;
     } else {
-      buffer = buffer ? `${buffer}\n\n${paragraph}` : paragraph;
+      buffer = next;
     }
   }
   if (buffer) chunks.push(makePaperChunk(article, fileName, index, buffer));
   return chunks;
+}
+
+function splitWithOverlap(text, maxChars, overlapChars) {
+  const clean = text.trim();
+  const slices = [];
+  let start = 0;
+  while (start < clean.length) {
+    const end = Math.min(clean.length, start + maxChars);
+    slices.push(clean.slice(start, end).trim());
+    if (end >= clean.length) break;
+    start = Math.max(end - overlapChars, start + 1);
+  }
+  return slices.filter(Boolean);
+}
+
+function overlapTail(text, maxChars) {
+  const clean = text.trim();
+  if (!clean || maxChars <= 0) return "";
+  if (clean.length <= maxChars) return clean;
+  const tail = clean.slice(-maxChars);
+  const boundary = tail.search(/[.!?。！？]\s+/);
+  return boundary >= 0 ? tail.slice(boundary + 1).trim() : tail.trim();
 }
 
 function makePaperChunk(article, fileName, index, text) {
@@ -247,8 +290,8 @@ function selectContext(query, mode) {
     const chunk = item.chunk;
     const rowKey = chunk.row ? String(chunk.row) : chunk.kind;
     const currentCount = rowCounts.get(rowKey) || 0;
-    if (chunk.kind === "paper" && currentCount >= 2) continue;
-    if (selected.length >= 9) break;
+    if (chunk.kind === "paper" && currentCount >= MAX_CHUNKS_PER_PAPER) continue;
+    if (selected.length >= MAX_SELECTED_CHUNKS) break;
     if (totalChars + chunk.text.length > MAX_CONTEXT_CHARS && selected.length >= 4) continue;
     selected.push(chunk);
     rowCounts.set(rowKey, currentCount + 1);
@@ -260,7 +303,7 @@ function selectContext(query, mode) {
     if (distilled) selected.unshift(distilled);
   }
 
-  return selected.slice(0, 9);
+  return selected.slice(0, MAX_SELECTED_CHUNKS);
 }
 
 function extractTerms(text) {

@@ -20,6 +20,12 @@ The GitHub Pages frontend in `docs/` calls the protected backend hosted on Aliyu
 - 6 Thomas first-author papers and 22 corresponding-author candidates are tracked as pending/missing.
 - `REL01` Fu (2025), `REL02` Liu et al. (2025), and `M01` AERE reviewer manuscript are explicitly excluded from AI Thomas evidence.
 
+## Local Retrieval Design
+
+- Full-text paper evidence is split into overlapping local chunks of about 950 characters.
+- Neighboring paper chunks carry about 180 characters of overlap, so concepts and claims are less likely to be cut apart.
+- Each answer retrieves up to 12 relevant chunks, with at most 3 chunks from the same paper, before calling DeepSeek.
+
 ## Local Development
 
 ```bash
