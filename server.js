@@ -292,7 +292,7 @@ const WORKFLOW_CONFIG = {
 2. 一个 Markdown 定义对照表，列包含：概念、核心定义、边界、行动要求、测量指标、常见误区。
 3. 边界判断：什么情况应使用概念 A，什么情况应使用概念 B。
 4. 测量建议：维度、条目来源、验证方法。
-5. Thomas-style reasoning 对应在哪里：说明定义、框架、测量三步如何体现。
+5. Thomas Reasoning 对应在哪里：说明定义、框架、测量三步如何体现。
 6. 证据边界。`
   },
   "variable-model": {
@@ -305,7 +305,7 @@ const WORKFLOW_CONFIG = {
 3. 机制路径，用文本箭头或代码块表示。
 4. 3-6 条假设草案，必须可直接改写进论文。
 5. 方法建议：样本、设计、分析方法、稳健性检查。
-6. Thomas-style reasoning 对应在哪里与证据边界。`
+6. Thomas Reasoning 对应在哪里与证据边界。`
   },
   "paper-pipeline": {
     label: "论文序列",
@@ -316,7 +316,7 @@ const WORKFLOW_CONFIG = {
 2. 一个 Markdown 时间线表，列包含：时间、paper、核心问题、理论/框架、方法、预期贡献、可积累资产。
 3. 说明 1 年、3 年、5 年阶段目标。
 4. 说明哪些资产会复用，例如量表、框架、数据集、课程材料。
-5. Thomas-style reasoning 对应在哪里与证据边界。`
+5. Thomas Reasoning 对应在哪里与证据边界。`
   },
   "paragraph-feedback": {
     label: "段落反馈",
@@ -327,7 +327,7 @@ const WORKFLOW_CONFIG = {
 2. 改写版本，保持学术表达清晰直接。
 3. 可保留内容。
 4. 需要删除、弱化或移动的内容。
-5. Thomas-style reasoning 对应在哪里：说明如何回到教育问题、机制、贡献和制度含义。
+5. Thomas Reasoning 对应在哪里：说明如何回到教育问题、机制、贡献和制度含义。
 6. 如用户没有给段落，先要求用户贴段落，但仍可给出需要检查的维度表。`
   }
 };

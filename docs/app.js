@@ -9,23 +9,28 @@ const DEFAULT_MESSAGES = [
 const WORKFLOW_TEMPLATES = {
   "research-matrix": {
     mode: "research-design",
-    prompt: "请用 Thomas-style research reasoning，帮我把这个研究方向拆成一个“对象 × 产出类型”的研究矩阵。\n\n研究方向：\n\n我希望你输出：一句话结论、研究矩阵表、3 个可写 paper 方向、下一步行动。"
+    label: "研究矩阵",
+    prompt: "请用 Thomas Reasoning，把下面的研究方向拆成“对象 × 产出类型”的研究矩阵。\n\n研究方向：\n\n输出请包括：一句话结论、研究矩阵表、3 个可写 paper 方向、下一步行动。"
   },
   "concept-boundary": {
     mode: "theory-frame",
-    prompt: "请用 Thomas-style research reasoning，帮我区分下面两个或多个概念的边界，并说明如何定义、测量和写进论文。\n\n概念：\n\n我希望你输出：定义对照表、边界判断、测量建议、Thomas-style reasoning 对应在哪里。"
+    label: "概念边界",
+    prompt: "请用 Thomas Reasoning，帮我区分下面概念的边界，并说明如何定义、测量和写进论文。\n\n概念：\n\n输出请包括：定义对照表、边界判断、测量建议、Thomas Reasoning 对应在哪里。"
   },
   "variable-model": {
     mode: "research-design",
-    prompt: "请用 Thomas-style research reasoning，把下面的研究想法转成变量模型、机制路径、假设草案和方法建议。\n\n研究想法：\n\n我希望你输出：变量表、机制路径、假设草案、方法建议、注意风险。"
+    label: "变量模型",
+    prompt: "请用 Thomas Reasoning，把下面的研究想法转成变量模型、机制路径、假设草案和方法建议。\n\n研究想法：\n\n输出请包括：变量表、机制路径、假设草案、方法建议、注意风险。"
   },
   "paper-pipeline": {
     mode: "literature-position",
-    prompt: "请用 Thomas-style research reasoning，为下面的研究方向设计一个 1 年 / 3 年 / 5 年论文序列。\n\n研究方向：\n\n我希望你输出：时间线表、每篇 paper 的理论/方法/贡献、可积累资产、证据边界。"
+    label: "论文序列",
+    prompt: "请用 Thomas Reasoning，为下面的研究方向设计一个 1 年 / 3 年 / 5 年论文序列。\n\n研究方向：\n\n输出请包括：时间线表、每篇 paper 的理论/方法/贡献、可积累资产、证据边界。"
   },
   "paragraph-feedback": {
     mode: "writing-feedback",
-    prompt: "请用 Thomas-style research reasoning，诊断并改写下面的论文段落。请指出逻辑问题、哪些内容保留、哪些需要删改。\n\n段落：\n\n我希望你输出：问题诊断表、改写版本、可保留内容、需删除或弱化内容。"
+    label: "段落反馈",
+    prompt: "请用 Thomas Reasoning，诊断并改写下面的论文段落。请指出逻辑问题、哪些内容保留、哪些需要删改。\n\n段落：\n\n输出请包括：问题诊断表、改写版本、可保留内容、需删除或弱化内容。"
   }
 };
 
@@ -42,6 +47,7 @@ const input = document.querySelector("#messageInput");
 const sendButton = document.querySelector("#sendButton");
 const modeGrid = document.querySelector("#modeGrid");
 const workflowGrid = document.querySelector("#workflowGrid");
+const workflowChip = document.querySelector("#workflowChip");
 const quickRow = document.querySelector("#quickRow");
 const clearButton = document.querySelector("#clearButton");
 const corpusStatus = document.querySelector("#corpusStatus");
@@ -53,6 +59,7 @@ const keyStatus = document.querySelector("#keyStatus");
 const statusDot = document.querySelector("#statusDot");
 
 renderMessages();
+renderWorkflowButtons();
 loadStatus();
 
 modeGrid.addEventListener("click", (event) => {
@@ -193,9 +200,16 @@ function setMode(mode) {
 }
 
 function renderWorkflowButtons() {
-  if (!workflowGrid) return;
-  for (const item of workflowGrid.querySelectorAll(".workflow-button")) {
-    item.classList.toggle("active", item.dataset.workflow === state.workflow);
+  if (workflowGrid) {
+    for (const item of workflowGrid.querySelectorAll(".workflow-button")) {
+      item.classList.toggle("active", item.dataset.workflow === state.workflow);
+    }
+  }
+
+  if (workflowChip) {
+    const workflow = WORKFLOW_TEMPLATES[state.workflow];
+    workflowChip.hidden = !workflow;
+    workflowChip.textContent = workflow ? `当前工具：${workflow.label}` : "";
   }
 }
 
@@ -232,19 +246,50 @@ function renderMessages() {
     const article = document.createElement("article");
     article.className = `message ${message.role}`;
 
+    const header = document.createElement("div");
+    header.className = "message-header";
+
     const role = document.createElement("div");
     role.className = "message-role";
     role.textContent = roleLabel(message.role);
+
+    header.appendChild(role);
+
+    if (message.role === "assistant" && !message.loading) {
+      const copyButton = document.createElement("button");
+      copyButton.className = "copy-button";
+      copyButton.type = "button";
+      copyButton.textContent = "Copy";
+      copyButton.addEventListener("click", async () => {
+        try {
+          await copyToClipboard(String(message.content || ""));
+          copyButton.textContent = "Copied";
+          setTimeout(() => {
+            copyButton.textContent = "Copy";
+          }, 1300);
+        } catch {
+          copyButton.textContent = "Copy failed";
+          setTimeout(() => {
+            copyButton.textContent = "Copy";
+          }, 1300);
+        }
+      });
+      header.appendChild(copyButton);
+    }
 
     const content = document.createElement("div");
     content.className = "message-content";
     content.innerHTML = formatMessage(message.content);
 
-    article.append(role, content);
+    article.append(header, content);
 
     if (message.sources?.length) {
       const sources = document.createElement("div");
       sources.className = "source-list";
+      const sourceLabel = document.createElement("span");
+      sourceLabel.className = "source-label";
+      sourceLabel.textContent = "Evidence used";
+      sources.appendChild(sourceLabel);
       for (const source of message.sources) {
         const chip = document.createElement("span");
         chip.className = "source-chip";
@@ -259,6 +304,23 @@ function renderMessages() {
     messageList.appendChild(article);
   }
   messageList.scrollTop = messageList.scrollHeight;
+}
+
+async function copyToClipboard(text) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.top = "-9999px";
+  document.body.appendChild(textarea);
+  textarea.select();
+  const copied = document.execCommand("copy");
+  textarea.remove();
+  if (!copied) throw new Error("Copy command failed");
 }
 
 function roleLabel(role) {

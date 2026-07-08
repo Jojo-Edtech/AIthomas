@@ -252,6 +252,10 @@ p {
   box-shadow: inset 3px 0 0 var(--teal);
 }
 
+.workflow-button.active .workflow-title {
+  color: var(--teal-dark);
+}
+
 .mode-title,
 .workflow-title {
   font-size: 14px;
@@ -392,17 +396,17 @@ p {
   scrollbar-gutter: stable;
   width: 100%;
   margin: 0 auto;
-  padding: 10px 8px;
+  padding: 12px 8px 14px;
   border-bottom: 1px solid var(--line);
 }
 
 .message {
   width: fit-content;
   max-width: min(82%, 760px);
-  margin-bottom: 12px;
-  padding: 12px 14px;
+  margin-bottom: 14px;
+  padding: 11px 13px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 8px;
   background: var(--surface);
   box-shadow: none;
 }
@@ -417,7 +421,8 @@ p {
 .message.assistant {
   max-width: min(94%, 960px);
   margin-right: auto;
-  background: #f7f9f7;
+  border-color: #d4dfdc;
+  background: #fbfcfa;
 }
 
 .message.system {
@@ -425,8 +430,15 @@ p {
   background: #fff9f1;
 }
 
+.message-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 7px;
+}
+
 .message-role {
-  margin-bottom: 5px;
   color: var(--muted);
   font-size: 12px;
   font-weight: 820;
@@ -434,6 +446,23 @@ p {
 
 .message.user .message-role {
   color: rgba(255, 255, 255, 0.78);
+}
+
+.copy-button {
+  min-height: 26px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  color: var(--muted);
+  background: var(--surface);
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.copy-button:hover {
+  border-color: #9ec2bd;
+  color: var(--teal-dark);
+  background: #f1f8f6;
 }
 
 .message-content {
@@ -532,6 +561,7 @@ p {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #fff;
+  box-shadow: 0 1px 0 rgba(28, 37, 44, 0.04);
 }
 
 .message-content table {
@@ -564,6 +594,7 @@ p {
   color: #24323a;
   background: #edf4f2;
   font-weight: 820;
+  white-space: nowrap;
 }
 
 .message-content tbody tr:nth-child(even) td {
@@ -585,18 +616,25 @@ p {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 15px;
-  padding-top: 12px;
+  margin-top: 16px;
+  padding-top: 13px;
   border-top: 1px solid var(--line);
+}
+
+.source-label {
+  flex: 0 0 100%;
+  color: #52606b;
+  font-size: 12px;
+  font-weight: 820;
 }
 
 .source-chip {
   max-width: 100%;
-  padding: 6px 8px;
-  border: 1px solid var(--line);
+  padding: 6px 9px;
+  border: 1px solid #cbd9d5;
   border-radius: 8px;
-  color: var(--muted);
-  background: var(--surface-soft);
+  color: #40505a;
+  background: #f7faf8;
   font-size: 12px;
   line-height: 1.35;
 }
@@ -617,9 +655,26 @@ p {
   font-weight: 820;
 }
 
+.workflow-chip {
+  grid-column: 1 / -1;
+  justify-self: start;
+  max-width: 100%;
+  padding: 6px 9px;
+  border: 1px solid #9bc9c3;
+  border-radius: 8px;
+  color: var(--teal-dark);
+  background: #f1f8f6;
+  font-size: 12px;
+  font-weight: 820;
+}
+
+.workflow-chip[hidden] {
+  display: none;
+}
+
 .composer textarea {
   width: 100%;
-  min-height: 64px;
+  min-height: 84px;
   max-height: 180px;
   resize: none;
   border: 1px solid var(--line-strong);
@@ -638,7 +693,7 @@ p {
 }
 
 .composer button {
-  min-height: 64px;
+  min-height: 84px;
   border: 1px solid var(--teal);
   color: #fff;
   background: var(--teal);
