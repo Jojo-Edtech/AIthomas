@@ -6,8 +6,32 @@ const DEFAULT_MESSAGES = [
   }
 ];
 
+const WORKFLOW_TEMPLATES = {
+  "research-matrix": {
+    mode: "research-design",
+    prompt: "请用 Thomas-style research reasoning，帮我把这个研究方向拆成一个“对象 × 产出类型”的研究矩阵。\n\n研究方向：\n\n我希望你输出：一句话结论、研究矩阵表、3 个可写 paper 方向、下一步行动。"
+  },
+  "concept-boundary": {
+    mode: "theory-frame",
+    prompt: "请用 Thomas-style research reasoning，帮我区分下面两个或多个概念的边界，并说明如何定义、测量和写进论文。\n\n概念：\n\n我希望你输出：定义对照表、边界判断、测量建议、Thomas-style reasoning 对应在哪里。"
+  },
+  "variable-model": {
+    mode: "research-design",
+    prompt: "请用 Thomas-style research reasoning，把下面的研究想法转成变量模型、机制路径、假设草案和方法建议。\n\n研究想法：\n\n我希望你输出：变量表、机制路径、假设草案、方法建议、注意风险。"
+  },
+  "paper-pipeline": {
+    mode: "literature-position",
+    prompt: "请用 Thomas-style research reasoning，为下面的研究方向设计一个 1 年 / 3 年 / 5 年论文序列。\n\n研究方向：\n\n我希望你输出：时间线表、每篇 paper 的理论/方法/贡献、可积累资产、证据边界。"
+  },
+  "paragraph-feedback": {
+    mode: "writing-feedback",
+    prompt: "请用 Thomas-style research reasoning，诊断并改写下面的论文段落。请指出逻辑问题、哪些内容保留、哪些需要删改。\n\n段落：\n\n我希望你输出：问题诊断表、改写版本、可保留内容、需删除或弱化内容。"
+  }
+};
+
 const state = {
   mode: "research-design",
+  workflow: null,
   messages: loadStoredMessages(),
   busy: false
 };
@@ -17,6 +41,7 @@ const composer = document.querySelector("#composer");
 const input = document.querySelector("#messageInput");
 const sendButton = document.querySelector("#sendButton");
 const modeGrid = document.querySelector("#modeGrid");
+const workflowGrid = document.querySelector("#workflowGrid");
 const quickRow = document.querySelector("#quickRow");
 const clearButton = document.querySelector("#clearButton");
 const corpusStatus = document.querySelector("#corpusStatus");
@@ -33,10 +58,23 @@ loadStatus();
 modeGrid.addEventListener("click", (event) => {
   const button = event.target.closest("[data-mode]");
   if (!button) return;
-  state.mode = button.dataset.mode;
-  for (const item of modeGrid.querySelectorAll(".mode-button")) {
-    item.classList.toggle("active", item === button);
-  }
+  setMode(button.dataset.mode);
+  state.workflow = null;
+  renderWorkflowButtons();
+});
+
+workflowGrid?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-workflow]");
+  if (!button) return;
+  const workflow = button.dataset.workflow;
+  const template = WORKFLOW_TEMPLATES[workflow];
+  if (!template) return;
+  state.workflow = workflow;
+  setMode(template.mode);
+  renderWorkflowButtons();
+  input.value = template.prompt;
+  input.focus();
+  input.setSelectionRange(input.value.length, input.value.length);
 });
 
 if (quickRow) {
@@ -49,6 +87,7 @@ if (quickRow) {
 }
 
 clearButton.addEventListener("click", () => {
+  state.workflow = null;
   state.messages = [
     {
       role: "assistant",
@@ -56,6 +95,7 @@ clearButton.addEventListener("click", () => {
     }
   ];
   persistConversation();
+  renderWorkflowButtons();
   renderMessages();
 });
 
@@ -105,6 +145,7 @@ async function sendMessage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         mode: state.mode,
+        workflow: state.workflow,
         messages: state.messages.filter((message) => message !== loadingMessage)
       })
     });
@@ -142,6 +183,20 @@ function apiUrl(path) {
   const base = String(window.AI_THOMAS_API_BASE || "").replace(/\/+$/, "");
   const cleanPath = String(path || "").replace(/^\/+/, "");
   return base ? `${base}/${cleanPath}` : cleanPath;
+}
+
+function setMode(mode) {
+  state.mode = mode || "research-design";
+  for (const item of modeGrid.querySelectorAll(".mode-button")) {
+    item.classList.toggle("active", item.dataset.mode === state.mode);
+  }
+}
+
+function renderWorkflowButtons() {
+  if (!workflowGrid) return;
+  for (const item of workflowGrid.querySelectorAll(".workflow-button")) {
+    item.classList.toggle("active", item.dataset.workflow === state.workflow);
+  }
 }
 
 function loadStoredMessages() {

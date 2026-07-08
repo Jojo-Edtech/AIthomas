@@ -271,10 +271,72 @@ const MODE_CONFIG = {
   }
 };
 
-function selectContext(query, mode) {
+const WORKFLOW_CONFIG = {
+  "research-matrix": {
+    label: "研究矩阵",
+    keywords: "matrix research agenda object output framework scale mechanism intervention paper pipeline contribution",
+    instruction: `本轮工作流：研究矩阵。
+输出结构必须为：
+1. 一句话结论。
+2. 一个 Markdown 表格，按“研究对象 × 产出类型”组织，列包含：研究对象、框架/定义、测量/量表、机制检验、课程/干预、可写 paper。
+3. 3 个可写 paper 方向，每个方向说明理论入口、方法、贡献。
+4. 下一步行动，用 3-5 条 bullet。
+5. 证据边界：说明哪些判断来自 Thomas 一作核心语料，哪些只是迁移建议。`
+  },
+  "concept-boundary": {
+    label: "概念边界",
+    keywords: "definition construct boundary literacy competency framework measurement validity scale self-efficacy",
+    instruction: `本轮工作流：概念边界。
+输出结构必须为：
+1. 一句话结论。
+2. 一个 Markdown 定义对照表，列包含：概念、核心定义、边界、行动要求、测量指标、常见误区。
+3. 边界判断：什么情况应使用概念 A，什么情况应使用概念 B。
+4. 测量建议：维度、条目来源、验证方法。
+5. Thomas-style reasoning 对应在哪里：说明定义、框架、测量三步如何体现。
+6. 证据边界。`
+  },
+  "variable-model": {
+    label: "变量模型",
+    keywords: "variable model hypothesis mediation moderation SEM CFA method mechanism autonomy competence relatedness",
+    instruction: `本轮工作流：变量模型。
+输出结构必须为：
+1. 一句话结论。
+2. 一个 Markdown 变量表，列包含：变量角色、变量名称、理论依据、测量方式、预期方向。
+3. 机制路径，用文本箭头或代码块表示。
+4. 3-6 条假设草案，必须可直接改写进论文。
+5. 方法建议：样本、设计、分析方法、稳健性检查。
+6. Thomas-style reasoning 对应在哪里与证据边界。`
+  },
+  "paper-pipeline": {
+    label: "论文序列",
+    keywords: "pipeline publication sequence year plan paper contribution agenda framework scale mechanism intervention",
+    instruction: `本轮工作流：论文序列。
+输出结构必须为：
+1. 一句话结论。
+2. 一个 Markdown 时间线表，列包含：时间、paper、核心问题、理论/框架、方法、预期贡献、可积累资产。
+3. 说明 1 年、3 年、5 年阶段目标。
+4. 说明哪些资产会复用，例如量表、框架、数据集、课程材料。
+5. Thomas-style reasoning 对应在哪里与证据边界。`
+  },
+  "paragraph-feedback": {
+    label: "段落反馈",
+    keywords: "paragraph abstract introduction discussion revision writing claim contribution implication concise academic",
+    instruction: `本轮工作流：段落反馈。
+输出结构必须为：
+1. 一个 Markdown 问题诊断表，列包含：问题类型、原文表现、为什么影响论文、修改策略。
+2. 改写版本，保持学术表达清晰直接。
+3. 可保留内容。
+4. 需要删除、弱化或移动的内容。
+5. Thomas-style reasoning 对应在哪里：说明如何回到教育问题、机制、贡献和制度含义。
+6. 如用户没有给段落，先要求用户贴段落，但仍可给出需要检查的维度表。`
+  }
+};
+
+function selectContext(query, mode, workflow) {
   const corpus = loadCorpus();
   const modeConfig = MODE_CONFIG[mode] || MODE_CONFIG["research-design"];
-  const terms = extractTerms(`${query} ${modeConfig.keywords}`);
+  const workflowConfig = WORKFLOW_CONFIG[workflow] || null;
+  const terms = extractTerms(`${query} ${modeConfig.keywords} ${workflowConfig?.keywords || ""}`);
   const scored = corpus.chunks.map((chunk) => ({
     chunk,
     score: scoreChunk(chunk, terms, query)
@@ -352,9 +414,10 @@ function scoreChunk(chunk, terms, rawQuery) {
   return score;
 }
 
-function buildSystemPrompt(mode, selectedChunks) {
+function buildSystemPrompt(mode, selectedChunks, workflow) {
   const corpus = loadCorpus();
   const modeConfig = MODE_CONFIG[mode] || MODE_CONFIG["research-design"];
+  const workflowConfig = WORKFLOW_CONFIG[workflow] || null;
   const selectedContext = selectedChunks.map((chunk, index) => {
     const source = chunk.row ? `#${chunk.row} ${chunk.year || ""} ${chunk.title}` : chunk.title;
     return [
@@ -368,6 +431,7 @@ function buildSystemPrompt(mode, selectedChunks) {
   return `${corpus.prompt}
 
 当前回答模式：${modeConfig.label}
+${workflowConfig ? `当前研究工具：${workflowConfig.label}\n${workflowConfig.instruction}` : ""}
 语料边界：核心语料为已下载并抽取的 38 篇 Thomas K. F. Chiu 一作 PDF；扩展语料为 12 篇 WoS Reprint Addresses 标记 Thomas K. F. Chiu 为通讯作者的 PDF。另有 6 篇 Thomas 一作论文和 22 篇通讯作者候选文献暂不在知识底座中，不能编造其细节。REL01 Fu (2025)、REL02 Liu et al. (2025) 与 M01 AERE reviewer 稿件是本地隔离材料，不属于 AI Thomas 证据。回答时要区分“一作核心语料”和“通讯作者扩展语料”。
 
 核心蒸馏：
@@ -406,7 +470,7 @@ function publicSources(selectedChunks) {
   return sources.slice(0, 8);
 }
 
-async function callDeepSeek(messages, mode) {
+async function callDeepSeek(messages, mode, workflow) {
   const apiKey = process.env.DEEPSEEK_API_KEY;
   if (!apiKey) {
     return {
@@ -419,8 +483,8 @@ async function callDeepSeek(messages, mode) {
   }
 
   const latestUser = [...messages].reverse().find((message) => message.role === "user")?.content || "";
-  const selectedChunks = selectContext(latestUser, mode);
-  const systemPrompt = buildSystemPrompt(mode, selectedChunks);
+  const selectedChunks = selectContext(latestUser, mode, workflow);
+  const systemPrompt = buildSystemPrompt(mode, selectedChunks, workflow);
   const safeMessages = messages
     .filter((message) => ["user", "assistant"].includes(message.role))
     .slice(-10)
@@ -471,7 +535,8 @@ async function callDeepSeek(messages, mode) {
       body: {
         answer,
         model: MODEL,
-        sources: publicSources(selectedChunks)
+        sources: publicSources(selectedChunks),
+        workflow: WORKFLOW_CONFIG[workflow] ? workflow : null
       }
     };
   } catch (error) {
@@ -599,11 +664,12 @@ async function handleApi(req, res) {
     const payload = safeJson(body, {});
     const messages = Array.isArray(payload.messages) ? payload.messages : [];
     const mode = payload.mode || "research-design";
+    const workflow = WORKFLOW_CONFIG[payload.workflow] ? payload.workflow : null;
     const usage = checkAndRecordUsage(req, messages);
     if (!usage.ok) {
       return sendJson(res, usage.status, { error: "usage_limit_reached", message: usage.message });
     }
-    const result = await callDeepSeek(messages, mode);
+    const result = await callDeepSeek(messages, mode, workflow);
     return sendJson(res, result.status, result.body);
   }
 

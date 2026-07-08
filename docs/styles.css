@@ -109,6 +109,7 @@ p {
 .corpus-line,
 .stat-list dt,
 .mode-copy,
+.workflow-copy,
 .compact-note p {
   color: var(--muted);
   line-height: 1.48;
@@ -119,6 +120,7 @@ p {
 .corpus-line,
 .stat-list dt,
 .mode-copy,
+.workflow-copy,
 .compact-note p {
   font-size: 13px;
 }
@@ -194,6 +196,12 @@ p {
   gap: 9px;
 }
 
+.workflow-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
 .mode-button {
   display: grid;
   gap: 3px;
@@ -208,9 +216,28 @@ p {
   text-align: left;
 }
 
+.workflow-button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px;
+  width: 100%;
+  min-height: 50px;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: var(--surface);
+  text-align: left;
+}
+
 .mode-button:hover {
   border-color: var(--line-strong);
   border-left-color: var(--blue);
+}
+
+.workflow-button:hover {
+  border-color: #a8c8c3;
+  background: #f8fbfa;
 }
 
 .mode-button.active {
@@ -219,7 +246,14 @@ p {
   background: var(--teal-soft);
 }
 
-.mode-title {
+.workflow-button.active {
+  border-color: #82bbb3;
+  background: var(--teal-soft);
+  box-shadow: inset 3px 0 0 var(--teal);
+}
+
+.mode-title,
+.workflow-title {
   font-size: 14px;
   font-weight: 760;
 }

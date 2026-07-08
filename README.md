@@ -26,6 +26,10 @@ The GitHub Pages frontend in `docs/` calls the protected backend hosted on Aliyu
 - Neighboring paper chunks carry about 180 characters of overlap, so concepts and claims are less likely to be cut apart.
 - Each answer retrieves up to 12 relevant chunks, with at most 3 chunks from the same paper, before calling DeepSeek.
 
+## Research Workflows
+
+The frontend includes five workflow templates: research matrix, concept boundary, variable model, paper pipeline, and paragraph feedback. Each workflow fills a structured prompt, sets the matching research mode, and sends a `workflow` id to `/api/chat`. The backend keeps plain chat backward-compatible while adding workflow-specific output requirements such as tables, actionable steps, Thomas-style reasoning, and evidence boundaries.
+
 ## Local Development
 
 ```bash
