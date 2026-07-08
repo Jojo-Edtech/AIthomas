@@ -1889,3 +1889,40 @@ textarea:focus-visible {
     min-height: 46px;
   }
 }
+
+@media (max-width: 620px) {
+  .app-shell:not(.mobile-panel-collapsed) .workspace-sidebar {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    grid-auto-rows: auto;
+    align-content: start;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .app-shell:not(.mobile-panel-collapsed) .mode-section {
+    display: block !important;
+  }
+
+  .app-shell:not(.mobile-panel-collapsed) .mode-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    overflow: visible !important;
+    padding-bottom: 0 !important;
+    scroll-snap-type: none !important;
+  }
+
+  .app-shell:not(.mobile-panel-collapsed) .mode-button {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 38px;
+    flex: initial !important;
+    scroll-snap-align: none !important;
+  }
+
+  .app-shell.mobile-panel-collapsed .workspace-sidebar {
+    max-height: none !important;
+    overflow: hidden !important;
+  }
+}
