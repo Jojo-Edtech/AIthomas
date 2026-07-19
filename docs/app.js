@@ -18,6 +18,8 @@ const WORKFLOW_TEMPLATES = {
 };
 
 let lang = window.AI_THOMAS_I18N.detectLang();
+let lastStatus = null;
+let statusError = false;
 
 function t(key, vars) {
   const table = window.AI_THOMAS_I18N.dict;
@@ -322,9 +324,6 @@ async function handleUnauthorized() {
   }
   await refreshAuth();
 }
-
-let lastStatus = null;
-let statusError = false;
 
 async function loadStatus() {
   try {
