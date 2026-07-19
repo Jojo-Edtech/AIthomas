@@ -556,6 +556,12 @@ p {
   border-color: var(--teal);
 }
 
+.lang-button {
+  min-width: 52px;
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.4px;
+}
+
 .workbench-body {
   display: grid;
   grid-template-columns: minmax(640px, 1180px);

@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AI Thomas Research Mentor</title>
-    <link rel="stylesheet" href="styles.css?v=mobile-panel-v3">
+    <link rel="stylesheet" href="styles.css?v=i18n-v1">
   </head>
   <body>
     <section class="login-screen" id="loginScreen" hidden>
@@ -34,7 +34,7 @@
 
         <section class="sidebar-section status-section" aria-label="运行状态">
           <div class="section-heading">
-            <h2>运行状态</h2>
+            <h2 data-i18n="statusHeading">运行状态</h2>
             <span class="status-dot" id="statusDot" aria-hidden="true"></span>
           </div>
           <p class="key-status" id="keyStatus">正在检查模型连接</p>
@@ -42,69 +42,69 @@
         </section>
 
         <section class="sidebar-section account-section" aria-label="当前工作区">
-          <h2>当前工作区</h2>
+          <h2 data-i18n="workspaceHeading">当前工作区</h2>
           <p class="user-badge" id="userBadge">Not signed in</p>
           <button class="logout-button" id="logoutButton" type="button">重置访客身份</button>
         </section>
 
         <section class="sidebar-section conversation-section" aria-label="会话记录">
           <div class="section-heading">
-            <h2>会话记录</h2>
-            <button class="mini-button" id="newConversationButton" type="button" aria-label="新建会话">New</button>
+            <h2 data-i18n="conversationsHeading">会话记录</h2>
+            <button class="mini-button" id="newConversationButton" type="button" aria-label="新建会话" data-i18n-aria="newConversationAria">New</button>
           </div>
           <div class="conversation-list" id="conversationList"></div>
         </section>
 
         <section class="sidebar-section mode-section" aria-label="回答模式">
-          <h2>研究模式</h2>
+          <h2 data-i18n="modesHeading">研究模式</h2>
           <div class="mode-grid" id="modeGrid">
             <button class="mode-button active" data-mode="research-design" type="button">
-              <span class="mode-title">研究设计</span>
-              <span class="mode-copy">变量、模型、方法路径</span>
+              <span class="mode-title" data-i18n="modeResearchDesign">研究设计</span>
+              <span class="mode-copy" data-i18n="modeResearchDesignCopy">变量、模型、方法路径</span>
             </button>
             <button class="mode-button" data-mode="theory-frame" type="button">
-              <span class="mode-title">理论框架</span>
-              <span class="mode-copy">概念边界与机制</span>
+              <span class="mode-title" data-i18n="modeTheoryFrame">理论框架</span>
+              <span class="mode-copy" data-i18n="modeTheoryFrameCopy">概念边界与机制</span>
             </button>
             <button class="mode-button" data-mode="literature-position" type="button">
-              <span class="mode-title">文献定位</span>
-              <span class="mode-copy">贡献、缺口、议程</span>
+              <span class="mode-title" data-i18n="modeLiterature">文献定位</span>
+              <span class="mode-copy" data-i18n="modeLiteratureCopy">贡献、缺口、议程</span>
             </button>
             <button class="mode-button" data-mode="writing-feedback" type="button">
-              <span class="mode-title">写作反馈</span>
-              <span class="mode-copy">段落、标题、表达</span>
+              <span class="mode-title" data-i18n="modeWriting">写作反馈</span>
+              <span class="mode-copy" data-i18n="modeWritingCopy">段落、标题、表达</span>
             </button>
           </div>
         </section>
 
         <section class="sidebar-section workflow-section" aria-label="研究工具包">
-          <h2>研究工具包</h2>
+          <h2 data-i18n="toolkitHeading">研究工具包</h2>
           <div class="workflow-grid" id="workflowGrid">
             <button class="workflow-button" data-workflow="research-matrix" type="button">
-              <span class="workflow-title">研究矩阵</span>
-              <span class="workflow-copy">对象 × 产出类型</span>
+              <span class="workflow-title" data-i18n="wfMatrix">研究矩阵</span>
+              <span class="workflow-copy" data-i18n="wfMatrixCopy">对象 × 产出类型</span>
             </button>
             <button class="workflow-button" data-workflow="concept-boundary" type="button">
-              <span class="workflow-title">概念边界</span>
-              <span class="workflow-copy">定义、区分、测量</span>
+              <span class="workflow-title" data-i18n="wfBoundary">概念边界</span>
+              <span class="workflow-copy" data-i18n="wfBoundaryCopy">定义、区分、测量</span>
             </button>
             <button class="workflow-button" data-workflow="variable-model" type="button">
-              <span class="workflow-title">变量模型</span>
-              <span class="workflow-copy">机制、假设、方法</span>
+              <span class="workflow-title" data-i18n="wfVariable">变量模型</span>
+              <span class="workflow-copy" data-i18n="wfVariableCopy">机制、假设、方法</span>
             </button>
             <button class="workflow-button" data-workflow="paper-pipeline" type="button">
-              <span class="workflow-title">论文序列</span>
-              <span class="workflow-copy">1/3/5 年 pipeline</span>
+              <span class="workflow-title" data-i18n="wfPipeline">论文序列</span>
+              <span class="workflow-copy" data-i18n="wfPipelineCopy">1/3/5 年 pipeline</span>
             </button>
             <button class="workflow-button" data-workflow="paragraph-feedback" type="button">
-              <span class="workflow-title">段落反馈</span>
-              <span class="workflow-copy">诊断、改写、保留</span>
+              <span class="workflow-title" data-i18n="wfParagraph">段落反馈</span>
+              <span class="workflow-copy" data-i18n="wfParagraphCopy">诊断、改写、保留</span>
             </button>
           </div>
         </section>
 
         <section class="sidebar-section knowledge-section" aria-label="知识底座">
-          <h2>知识底座</h2>
+          <h2 data-i18n="knowledgeHeading">知识底座</h2>
           <dl class="stat-list">
             <div>
               <dt>Corpus PDFs</dt>
@@ -127,11 +127,12 @@
         <header class="workbench-header">
           <div>
             <p class="eyebrow">Research Mentor Corpus</p>
-            <h2>AI Research Mentor</h2>
+            <h2 data-i18n="headerTitle">AI Thomas 科研导师</h2>
           </div>
           <div class="header-actions">
             <span class="model-pill" id="modelName">DeepSeek V4 Flash</span>
-            <button class="clear-button" id="clearButton" type="button" aria-label="清空当前对话">新建会话</button>
+            <button class="clear-button lang-button" id="langToggle" type="button" aria-label="Switch language">EN</button>
+            <button class="clear-button" id="clearButton" type="button" aria-label="清空当前对话" data-i18n-aria="clearAria" data-i18n="newChat">新建会话</button>
           </div>
         </header>
 
@@ -142,14 +143,15 @@
             <form class="composer" id="composer">
               <label class="composer-label" for="messageInput">Message</label>
               <div class="workflow-chip" id="workflowChip" hidden></div>
-              <textarea id="messageInput" rows="1" placeholder="输入研究 idea、段落或追问"></textarea>
-              <button id="sendButton" type="submit">发送</button>
+              <textarea id="messageInput" rows="1" placeholder="输入研究 idea、段落或追问" data-i18n-placeholder="composerPlaceholder"></textarea>
+              <button id="sendButton" type="submit" data-i18n="send">发送</button>
             </form>
           </section>
         </div>
       </main>
     </div>
 
-    <script src="app.js?v=mobile-panel-v3"></script>
+    <script src="i18n.js?v=i18n-v1"></script>
+    <script src="app.js?v=i18n-v1"></script>
   </body>
 </html>

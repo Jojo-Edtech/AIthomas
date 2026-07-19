@@ -5,37 +5,34 @@ const MOBILE_PANEL_KEY = "ai-thomas-mobile-panel-collapsed-v1";
 const DEFAULT_MESSAGES = [
   {
     role: "assistant",
-    content: "你好，我是 AI Thomas，一个基于本地论文语料的科研导师助手。你可以把研究 idea、论文段落、变量想法或追问发给我。"
+    i18nKey: "greeting"
   }
 ];
 
 const WORKFLOW_TEMPLATES = {
-  "research-matrix": {
-    mode: "research-design",
-    label: "研究矩阵",
-    prompt: "请作为科研导师助手，把下面的研究方向拆成“对象 × 产出类型”的研究矩阵。\n\n研究方向：\n\n输出请包括：一句话结论、研究矩阵表、3 个可写 paper 方向、下一步行动、证据边界。"
-  },
-  "concept-boundary": {
-    mode: "theory-frame",
-    label: "概念边界",
-    prompt: "请作为科研导师助手，帮我区分下面概念的边界，并说明如何定义、测量和写进论文。\n\n概念：\n\n输出请包括：定义对照表、边界判断、测量建议、导师反馈依据、证据边界。"
-  },
-  "variable-model": {
-    mode: "research-design",
-    label: "变量模型",
-    prompt: "请作为科研导师助手，把下面的研究想法转成变量模型、机制路径、假设草案和方法建议。\n\n研究想法：\n\n输出请包括：变量表、机制路径、假设草案、方法建议、注意风险。"
-  },
-  "paper-pipeline": {
-    mode: "literature-position",
-    label: "论文序列",
-    prompt: "请作为科研导师助手，为下面的研究方向设计一个 1 年 / 3 年 / 5 年论文序列。\n\n研究方向：\n\n输出请包括：时间线表、每篇 paper 的理论/方法/贡献、可积累资产、证据边界。"
-  },
-  "paragraph-feedback": {
-    mode: "writing-feedback",
-    label: "段落反馈",
-    prompt: "请作为科研导师助手，诊断并改写下面的论文段落。请指出逻辑问题、哪些内容保留、哪些需要删改。\n\n段落：\n\n输出请包括：问题诊断表、改写版本、可保留内容、需删除或弱化内容。"
-  }
+  "research-matrix": { mode: "research-design", labelKey: "wfMatrix", promptKey: "wfMatrixPrompt" },
+  "concept-boundary": { mode: "theory-frame", labelKey: "wfBoundary", promptKey: "wfBoundaryPrompt" },
+  "variable-model": { mode: "research-design", labelKey: "wfVariable", promptKey: "wfVariablePrompt" },
+  "paper-pipeline": { mode: "literature-position", labelKey: "wfPipeline", promptKey: "wfPipelinePrompt" },
+  "paragraph-feedback": { mode: "writing-feedback", labelKey: "wfParagraph", promptKey: "wfParagraphPrompt" }
 };
+
+let lang = window.AI_THOMAS_I18N.detectLang();
+
+function t(key, vars) {
+  const table = window.AI_THOMAS_I18N.dict;
+  let text = table[lang]?.[key] ?? table.zh[key] ?? key;
+  if (vars) {
+    for (const [name, value] of Object.entries(vars)) {
+      text = text.split(`{${name}}`).join(String(value));
+    }
+  }
+  return text;
+}
+
+function messageContent(message) {
+  return message.i18nKey ? t(message.i18nKey) : String(message.content || "");
+}
 
 const state = {
   user: null,
@@ -77,16 +74,47 @@ const modelName = document.querySelector("#modelName");
 const keyStatus = document.querySelector("#keyStatus");
 const statusDot = document.querySelector("#statusDot");
 const mobilePanelToggle = document.querySelector("#mobilePanelToggle");
+const langToggle = document.querySelector("#langToggle");
 
 init();
 
 async function init() {
   hidePrimaryScreens();
-  applyMobilePanelState();
+  applyI18n();
   renderMessages();
   renderWorkflowButtons();
   await loadStatus();
   await refreshAuth();
+}
+
+langToggle?.addEventListener("click", () => {
+  setLang(lang === "zh" ? "en" : "zh");
+});
+
+function setLang(nextLang) {
+  lang = nextLang === "en" ? "en" : "zh";
+  window.AI_THOMAS_I18N.saveLang(lang);
+  applyI18n();
+  renderMessages();
+  renderWorkflowButtons();
+  renderConversationList();
+}
+
+function applyI18n() {
+  document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+  for (const element of document.querySelectorAll("[data-i18n]")) {
+    element.textContent = t(element.dataset.i18n);
+  }
+  for (const element of document.querySelectorAll("[data-i18n-placeholder]")) {
+    element.setAttribute("placeholder", t(element.dataset.i18nPlaceholder));
+  }
+  for (const element of document.querySelectorAll("[data-i18n-aria]")) {
+    element.setAttribute("aria-label", t(element.dataset.i18nAria));
+  }
+  if (langToggle) langToggle.textContent = t("langToggle");
+  updateLogoutButton();
+  applyMobilePanelState();
+  renderStatus();
 }
 
 loginForm?.addEventListener("submit", async (event) => {
@@ -95,7 +123,7 @@ loginForm?.addEventListener("submit", async (event) => {
   const username = loginUsername.value.trim();
   const password = loginPassword.value;
   if (!username || !password) {
-    loginError.textContent = "请输入用户名和密码。";
+    loginError.textContent = t("loginMissing");
     return;
   }
 
@@ -104,7 +132,7 @@ loginForm?.addEventListener("submit", async (event) => {
     body: { username, password }
   });
   if (!result.ok) {
-    loginError.textContent = result.data?.message || "登录失败。";
+    loginError.textContent = result.data?.message || t("loginFailed");
     return;
   }
   state.user = result.data.user;
@@ -145,7 +173,7 @@ workflowGrid?.addEventListener("click", (event) => {
   state.workflow = workflow;
   setMode(template.mode);
   renderWorkflowButtons();
-  input.value = template.prompt;
+  input.value = t(template.promptKey);
   resizeInput();
   input.focus();
   input.setSelectionRange(input.value.length, input.value.length);
@@ -156,7 +184,7 @@ conversationList?.addEventListener("click", async (event) => {
   if (deleteButton) {
     event.stopPropagation();
     const conversationId = deleteButton.dataset.deleteConversation;
-    const ok = window.confirm("删除这个会话？");
+    const ok = window.confirm(t("confirmDelete"));
     if (!ok) return;
     await deleteConversation(conversationId);
     return;
@@ -203,7 +231,7 @@ composer.addEventListener("submit", async (event) => {
   input.value = "";
   resizeInput();
   state.messages.push({ role: "user", content });
-  state.messages.push({ role: "assistant", content: "正在匹配本地论文语料，并生成研究分析...", loading: true });
+  state.messages.push({ role: "assistant", i18nKey: "loadingMsg", loading: true });
   renderMessages();
   await sendMessage(content);
 });
@@ -259,10 +287,13 @@ function showAppShell(visible) {
   if (appShell) appShell.hidden = false;
   if (loginScreen) loginScreen.hidden = true;
   if (userBadge) userBadge.textContent = state.user?.displayName || state.user?.username || "Not signed in";
-  if (logoutButton) {
-    logoutButton.textContent = state.user?.anonymous ? "重置访客身份" : "退出登录";
-  }
+  updateLogoutButton();
   applyMobilePanelState();
+}
+
+function updateLogoutButton() {
+  if (!logoutButton) return;
+  logoutButton.textContent = state.user && !state.user.anonymous ? t("signOut") : t("resetGuest");
 }
 
 function setMobilePanelCollapsed(collapsed) {
@@ -279,7 +310,7 @@ function applyMobilePanelState() {
   if (!appShell) return;
   appShell.classList.toggle("mobile-panel-collapsed", state.mobilePanelCollapsed);
   if (mobilePanelToggle) {
-    mobilePanelToggle.textContent = state.mobilePanelCollapsed ? "工具" : "收起";
+    mobilePanelToggle.textContent = state.mobilePanelCollapsed ? t("panelTools") : t("panelHide");
     mobilePanelToggle.setAttribute("aria-expanded", state.mobilePanelCollapsed ? "false" : "true");
   }
 }
@@ -292,31 +323,51 @@ async function handleUnauthorized() {
   await refreshAuth();
 }
 
+let lastStatus = null;
+let statusError = false;
+
 async function loadStatus() {
   try {
     const response = await fetch(apiUrl("api/status"), {
       credentials: "include",
       headers: apiHeaders()
     });
-    const status = await response.json();
-    corpusStatus.textContent = `${status.paperCount} 篇 PDF · ${status.chunkCount} 个本地片段`;
-    paperCount.textContent = status.paperCount;
-    chunkCount.textContent = status.chunkCount;
-    missingCount.textContent = status.missingCount;
-    modelName.textContent = formatModelName(status.model);
-    const providerLabel = formatProviderName(status.provider);
-    const quotaLabel = status.freeQuotaProtected ? " · 免费额度保护" : "";
-    keyStatus.textContent = status.hasApiKey ? `${providerLabel} API 已连接${quotaLabel}` : `${providerLabel} API 未连接`;
-    keyStatus.classList.toggle("ok", status.hasApiKey);
-    keyStatus.classList.toggle("missing", !status.hasApiKey);
-    statusDot.classList.toggle("ok", status.hasApiKey);
-    statusDot.classList.toggle("missing", !status.hasApiKey);
+    lastStatus = await response.json();
+    statusError = false;
   } catch {
-    corpusStatus.textContent = "服务未响应";
-    keyStatus.textContent = "状态检查失败";
+    statusError = true;
+  }
+  renderStatus();
+}
+
+function renderStatus() {
+  if (statusError) {
+    corpusStatus.textContent = t("noService");
+    keyStatus.textContent = t("statusFailed");
     keyStatus.classList.add("missing");
     statusDot.classList.add("missing");
+    return;
   }
+  if (!lastStatus) {
+    keyStatus.textContent = t("checkingModel");
+    corpusStatus.textContent = t("loadingCorpus");
+    return;
+  }
+  const status = lastStatus;
+  corpusStatus.textContent = t("statusCorpus", { p: status.paperCount, c: status.chunkCount });
+  paperCount.textContent = status.paperCount;
+  chunkCount.textContent = status.chunkCount;
+  missingCount.textContent = status.missingCount;
+  modelName.textContent = formatModelName(status.model);
+  const providerLabel = formatProviderName(status.provider);
+  const quotaLabel = status.freeQuotaProtected ? t("freeQuota") : "";
+  keyStatus.textContent = status.hasApiKey
+    ? t("apiConnected", { label: providerLabel, quota: quotaLabel })
+    : t("apiNotConnected", { label: providerLabel });
+  keyStatus.classList.toggle("ok", status.hasApiKey);
+  keyStatus.classList.toggle("missing", !status.hasApiKey);
+  statusDot.classList.toggle("ok", status.hasApiKey);
+  statusDot.classList.toggle("missing", !status.hasApiKey);
 }
 
 async function loadConversations() {
@@ -424,7 +475,7 @@ async function sendMessage(content) {
       }
       state.messages.push({
         role: "system",
-        content: result.data?.message || "请求失败，请稍后再试。"
+        content: result.data?.message || t("requestFailed")
       });
     } else {
       state.activeConversationId = result.data.conversation.id;
@@ -437,7 +488,7 @@ async function sendMessage(content) {
     state.messages = state.messages.filter((message) => !message.loading);
     state.messages.push({
       role: "system",
-      content: `本地服务请求失败：${error.message}`
+      content: t("localServiceFailed", { message: error.message })
     });
   } finally {
     state.busy = false;
@@ -542,7 +593,7 @@ function renderWorkflowButtons() {
   if (workflowChip) {
     const workflow = WORKFLOW_TEMPLATES[state.workflow];
     workflowChip.hidden = !workflow;
-    workflowChip.textContent = workflow ? `当前工具：${workflow.label}` : "";
+    workflowChip.textContent = workflow ? `${t("activeTool")}${t(workflow.labelKey)}` : "";
   }
 }
 
@@ -552,7 +603,7 @@ function renderConversationList() {
   if (!state.conversations.length) {
     const empty = document.createElement("p");
     empty.className = "conversation-empty";
-    empty.textContent = "还没有会话";
+    empty.textContent = t("noConversations");
     conversationList.appendChild(empty);
     return;
   }
@@ -605,7 +656,7 @@ function renderMessages() {
       copyButton.textContent = "Copy";
       copyButton.addEventListener("click", async () => {
         try {
-          await copyToClipboard(String(message.content || ""));
+          await copyToClipboard(messageContent(message));
           copyButton.textContent = "Copied";
           setTimeout(() => {
             copyButton.textContent = "Copy";
@@ -622,7 +673,7 @@ function renderMessages() {
 
     const content = document.createElement("div");
     content.className = "message-content";
-    content.innerHTML = formatMessage(message.content);
+    content.innerHTML = formatMessage(messageContent(message));
 
     article.append(header, content);
 
