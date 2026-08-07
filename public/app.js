@@ -846,6 +846,7 @@ function roleLabel(role) {
 function formatModelName(model) {
   if (!model) return "DeepSeek";
   const shortName = String(model).includes("/") ? String(model).split("/").pop() : String(model);
+  if (shortName.startsWith("Qwen3-30B-A3B-Instruct")) return "Qwen3 30B Fast";
   return shortName
     .replace("deepseek-", "DeepSeek ")
     .replace("v4", "V4")

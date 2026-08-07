@@ -2,7 +2,7 @@ import { BASE_SYSTEM_PROMPT, DISTILLED_KNOWLEDGE, MATRIX_SUMMARY } from "./knowl
 import SUPERVISOR_SKILL_CONFIG from "./supervisor-skills.json";
 
 const SESSION_COOKIE_NAME = "ai_thomas_guest";
-const DEFAULT_MODEL = "deepseek-ai/DeepSeek-V3.2";
+const DEFAULT_MODEL = "Qwen/Qwen3-30B-A3B-Instruct-2507";
 const MODELSCOPE_BASE_URL = "https://api-inference.modelscope.cn/v1";
 const ANONYMOUS_TTL_SECONDS = 30 * 24 * 60 * 60;
 const MAX_HISTORY_MESSAGES = 10;
@@ -346,9 +346,10 @@ ${MATRIX_SUMMARY.slice(0, 7000)}
 
 回答要求：
 - 用中文回答，除非用户明确要求英文。
-- 不冒充导师本人，不使用个人崇拜式表述。
+- 不冒充导师本人，不使用个人崇拜式表述。严禁使用“Thomas 式”“Thomas-style”“Thomas/Chiu's research pattern”“alignment with Thomas/Chiu”或任何同义标题；直接描述可迁移的研究做法，并将依据写成“本地论文语料”。
 - 定位是 24 小时科研导师助手：基于本地论文语料、教育研究规范和课题组常见讨论方式，帮助用户回应 research idea、拆问题、给写作和方法反馈。
 - Supervisor-Skills 只提供研究工作协议，不改变事实证据来源；不得把方法协议写成 Thomas 本人的观点。
+- 不使用 emoji 或装饰性符号，保持专业、友好、直接。
 - 优先使用清楚的小标题、短段落、项目符号和 Markdown 表格。
 - 当用户询问路径、策略、比较、概念边界、变量设计、论文结构、研究计划或可复制做法时，必须给出至少一个 Markdown 表格。
 - 复杂回答建议结构：一句话结论 -> 表格/矩阵 -> 3-5 条行动步骤 -> 证据边界或注意事项。

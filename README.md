@@ -96,7 +96,11 @@ Use `docs/` as the GitHub Pages source for the public static app. `docs/config.j
 window.AI_THOMAS_API_BASE = "https://ai-thomas-modelscope-api.xinyanzjo.workers.dev";
 ```
 
-Worker deployment uses `wrangler.toml`, Cloudflare KV, and a secret named `MODELSCOPE_API_KEY`. The token is not committed to GitHub. Current Worker safety limits are:
+Worker deployment uses `wrangler.toml`, Cloudflare KV, and a secret named `MODELSCOPE_API_KEY`. The token is not committed to GitHub.
+
+The hosted model is `Qwen/Qwen3-30B-A3B-Instruct-2507`, a non-thinking Qwen3 MoE model selected for faster research-chat responses. The Worker status endpoint reports the active model so the frontend label stays synchronized with deployment.
+
+Current Worker safety limits are:
 
 - 8 requests per hour per anonymous visitor
 - 20 requests per day per anonymous visitor
