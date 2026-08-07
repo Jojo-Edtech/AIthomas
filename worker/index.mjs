@@ -1,4 +1,5 @@
 import { BASE_SYSTEM_PROMPT, DISTILLED_KNOWLEDGE, MATRIX_SUMMARY } from "./knowledge.mjs";
+import SUPERVISOR_SKILL_CONFIG from "./supervisor-skills.json";
 
 const SESSION_COOKIE_NAME = "ai_thomas_guest";
 const DEFAULT_MODEL = "deepseek-ai/DeepSeek-V3.2";
@@ -93,6 +94,7 @@ async function handleApi(request, env, url) {
       chunkCount: 4081,
       missingCount: 6,
       freeQuotaProtected: true,
+      supervisorSkillCount: Object.keys(SUPERVISOR_SKILL_CONFIG).length,
       limits: {
         perHour: limits.perHour,
         perDay: limits.perDay,
@@ -200,8 +202,11 @@ async function handleChat(request, env) {
   if (payload.conversationId && !conversation) return json(request, env, { error: "not_found" }, 404);
   if (!conversation) conversation = await createConversation(env, user.id, titleFromMessage(message));
 
-  const mode = MODE_CONFIG[payload.mode] ? payload.mode : "research-design";
-  const workflow = WORKFLOW_CONFIG[payload.workflow] ? payload.workflow : null;
+  const supervisorSkill = SUPERVISOR_SKILL_CONFIG[payload.supervisorSkill] ? payload.supervisorSkill : null;
+  const mode = supervisorSkill
+    ? SUPERVISOR_SKILL_CONFIG[supervisorSkill].mode
+    : MODE_CONFIG[payload.mode] ? payload.mode : "research-design";
+  const workflow = supervisorSkill ? null : WORKFLOW_CONFIG[payload.workflow] ? payload.workflow : null;
   const userMessage = makeMessage("user", message);
   const modelMessages = [...conversation.messages, userMessage]
     .filter((item) => ["user", "assistant"].includes(item.role))
@@ -219,10 +224,11 @@ async function handleChat(request, env) {
   if (!conversation.title || conversation.title === "New conversation") conversation.title = titleFromMessage(message);
   conversation.mode = mode;
   conversation.workflow = workflow;
+  conversation.supervisorSkill = supervisorSkill;
   conversation.updatedAt = userMessage.createdAt;
   await writeConversation(env, conversation);
 
-  const modelResult = await callModelScope(env, modelMessages, mode, workflow);
+  const modelResult = await callModelScope(env, modelMessages, mode, workflow, supervisorSkill);
   if (!modelResult.ok) {
     return json(request, env, {
       error: modelResult.error || "modelscope_error",
@@ -231,9 +237,18 @@ async function handleChat(request, env) {
     }, modelResult.status || 500);
   }
 
+  const sources = [{ title: "AI Thomas compact research mentor corpus", type: "distilled" }];
+  if (supervisorSkill) {
+    sources.push({
+      title: "HKUST DIAL Supervisor-Skills methodology",
+      type: "methodology",
+      url: "https://github.com/HKUSTDial/Supervisor-Skills"
+    });
+  }
   const assistantMessage = makeMessage("assistant", modelResult.answer, {
-    sources: [{ title: "AI Thomas compact research mentor corpus", type: "distilled" }],
-    workflow
+    sources,
+    workflow,
+    supervisorSkill
   });
   conversation.messages.push(assistantMessage);
   conversation.updatedAt = assistantMessage.createdAt;
@@ -245,12 +260,13 @@ async function handleChat(request, env) {
     provider: "modelscope",
     sources: assistantMessage.sources,
     workflow,
+    supervisorSkill,
     conversation: serializeConversation(conversation),
     conversations: await listConversations(env, user.id)
   }));
 }
 
-async function callModelScope(env, messages, mode, workflow) {
+async function callModelScope(env, messages, mode, workflow, supervisorSkill) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), readInt(env.MODELSCOPE_TIMEOUT_MS, 55000));
   try {
@@ -264,7 +280,7 @@ async function callModelScope(env, messages, mode, workflow) {
       body: JSON.stringify({
         model: modelName(env),
         messages: [
-          { role: "system", content: buildSystemPrompt(mode, workflow) },
+          { role: "system", content: buildSystemPrompt(mode, workflow, supervisorSkill) },
           ...messages.map((item) => ({
             role: item.role,
             content: String(item.content || "").slice(0, 5000)
@@ -311,14 +327,16 @@ async function callModelScope(env, messages, mode, workflow) {
   }
 }
 
-function buildSystemPrompt(mode, workflow) {
+function buildSystemPrompt(mode, workflow, supervisorSkill) {
   const modeConfig = MODE_CONFIG[mode] || MODE_CONFIG["research-design"];
   const workflowConfig = WORKFLOW_CONFIG[workflow] || null;
+  const supervisorSkillConfig = SUPERVISOR_SKILL_CONFIG[supervisorSkill] || null;
   return `${BASE_SYSTEM_PROMPT}
 
 当前回答模式：${modeConfig.label}
 ${modeConfig.instruction}
 ${workflowConfig ? `当前研究工具：${workflowConfig.label}\n${workflowConfig.instruction}` : ""}
+${supervisorSkillConfig ? `当前科研指导技能：${supervisorSkillConfig.label}\n${supervisorSkillConfig.instruction}` : ""}
 
 压缩知识底座：
 ${DISTILLED_KNOWLEDGE.slice(0, 9000)}
@@ -330,6 +348,7 @@ ${MATRIX_SUMMARY.slice(0, 7000)}
 - 用中文回答，除非用户明确要求英文。
 - 不冒充导师本人，不使用个人崇拜式表述。
 - 定位是 24 小时科研导师助手：基于本地论文语料、教育研究规范和课题组常见讨论方式，帮助用户回应 research idea、拆问题、给写作和方法反馈。
+- Supervisor-Skills 只提供研究工作协议，不改变事实证据来源；不得把方法协议写成 Thomas 本人的观点。
 - 优先使用清楚的小标题、短段落、项目符号和 Markdown 表格。
 - 当用户询问路径、策略、比较、概念边界、变量设计、论文结构、研究计划或可复制做法时，必须给出至少一个 Markdown 表格。
 - 复杂回答建议结构：一句话结论 -> 表格/矩阵 -> 3-5 条行动步骤 -> 证据边界或注意事项。
@@ -472,6 +491,7 @@ async function createConversation(env, userId, title = "New conversation") {
     updatedAt: now,
     mode: "research-design",
     workflow: null,
+    supervisorSkill: null,
     messages: []
   };
   await writeConversation(env, conversation);
@@ -508,6 +528,7 @@ function serializeConversation(conversation) {
     updatedAt: conversation.updatedAt,
     mode: conversation.mode || "research-design",
     workflow: conversation.workflow || null,
+    supervisorSkill: conversation.supervisorSkill || null,
     messages: Array.isArray(conversation.messages) ? conversation.messages : []
   };
 }

@@ -1,0 +1,68 @@
+{
+  "idea-evaluator": {
+    "label": "研究想法评估",
+    "mode": "research-design",
+    "keywords": "novelty feasibility contribution fatal flaw validation research idea reviewer lifecycle capability scope pivot",
+    "instruction": "先按研究方法判断范式，并用一句话复述核心主张。先做致命缺陷审查，再评估贡献、可行性、范围、研究者能力匹配和最小验证路径。若当前本地语料不足以验证新颖性，必须标注‘新颖性未验证，需要外部文献检索’，不能把未检索到等同于新颖。结尾给 Strong Accept、Accept with Revisions 或 Reject and Pivot，并列出 3 个下一步。"
+  },
+  "deep-research": {
+    "label": "深度文献梳理",
+    "mode": "literature-position",
+    "keywords": "literature review survey taxonomy evidence synthesis research question debate gap opposing evidence methodology",
+    "instruction": "先冻结 2-3 个可回答的研究问题，再从主流、批评、相邻领域、方法和应用视角组织证据。当前网页没有实时学术检索工具，因此只能综合用户提供材料与 AI Thomas 本地语料；不得编造引用，也不得把覆盖不足的结果称为完整综述。输出 RQ、MECE 主题表、支持与反对证据、关键张力、语料缺口以及逐个 RQ 的暂定回答，并明确哪些部分需要外部检索验证。"
+  },
+  "intro-drafter": {
+    "label": "Introduction 草拟",
+    "mode": "writing-feedback",
+    "keywords": "introduction background motivation limitation gap goal challenge solution contribution social science education",
+    "instruction": "先按方法判断研究范式。技术论文可采用背景与例子、现有限制、问题本质与目标、关键挑战、方案概述、贡献的六段逻辑；教育或社会科学研究不得生硬套用技术模板，应改用现象与重要性、文献张力、理论缺口、研究目的与问题、研究设计定位、预期贡献。默认输出连贯正文，不泄露内部模板；缺失的事实、例子和引用必须省略或列为待补材料。"
+  },
+  "paper-writer": {
+    "label": "论文写作",
+    "mode": "writing-feedback",
+    "keywords": "academic writing manuscript abstract introduction methods results discussion evidence claim prose section",
+    "instruction": "先确认目标章节、研究范式和论证目的，再写可直接使用的学术正文。每个事实性主张只能来自用户材料、本地语料或无需具体事实的领域常识；不得补造数据、程序、案例、引文或结果。真实结果与计划或预期结果必须使用不同表述，主张强度不得超过证据强度。默认交付干净正文，必要的缺口另列在正文之后。"
+  },
+  "paper-polish": {
+    "label": "学术润色",
+    "mode": "writing-feedback",
+    "keywords": "polish grammar flow academic tone overclaim meaning preserve revise AI tone translation",
+    "instruction": "保留作者原意、术语、论证方向和证据强度，修复语法、衔接、冗余、过强表述与 AI 腔。不得偷偷加入新主张、数据或引用。先给润色后的完整版本，再用简短清单标出任何可能改变原意或需要作者确认的修改；若原文逻辑证据不足，要明确指出而不是用语言掩盖。"
+  },
+  "pre-submission-reviewer": {
+    "label": "投稿前审查",
+    "mode": "writing-feedback",
+    "keywords": "submission review critical major minor logic grammar formatting figure risk reviewer manuscript",
+    "instruction": "以审稿问题为先，按 CRITICAL、MAJOR、MINOR 排序审查宏观逻辑、论证细节、语言、格式与图表。每个发现必须包含位置或原文线索、为什么重要、可直接执行的修复。没有稿件、图表或目标期刊信息时，要把相应检查标为无法验证，不能假装完成全文或视觉审查。最后给简短的提交风险结论。"
+  },
+  "tech-paper-template": {
+    "label": "技术论文框架",
+    "mode": "research-design",
+    "keywords": "technical paper structure background limitation key idea goal challenge methodology module contribution consistency",
+    "instruction": "把材料整理成背景、现有限制、核心想法或目标、关键挑战、方法模块和贡献六部分的思考表，并判断更像 Technique 还是 New Problem or Setting。挑战、模块和贡献必须一一对应；最后做完整性与一致性审查。若研究不是技术范式，明确指出不适配，并给教育或社会科学论文的替代骨架。"
+  },
+  "benchmark-paper-template": {
+    "label": "Benchmark 论文框架",
+    "mode": "research-design",
+    "keywords": "benchmark evaluation dataset construction pipeline taxonomy empirical finding companion method design goal experiment",
+    "instruction": "审查五个支柱：Research Gap、Construction Pipeline、Evaluation Framework、Empirical Findings、可选 Companion Method。输出五支柱完整性表、六部分 Introduction 逻辑链、从任务与设计目标到讨论的章节骨架，以及缺失证据清单。不得虚构数据规模、指标、基线或实验发现；未提供内容必须标记为待设计或待验证。"
+  },
+  "figure-designer": {
+    "label": "论文图表设计",
+    "mode": "research-design",
+    "keywords": "figure design motivated example solution overview experimental result layout label palette caption visual audit",
+    "instruction": "先判断任务属于 Motivated Example、Solution Overview、Results Figure 或支持性图表，再给出适合的视觉范式、布局草图、可见标签、配色、绘制工具和质量检查。没有看到图片时，字体可读性、颜色、遮挡、栅格或矢量等视觉项目必须标注‘需要用户验证’，不得声称已完成视觉审查或文件制作。"
+  },
+  "drawio-reconstruction": {
+    "label": "Draw.io 重构规划",
+    "mode": "research-design",
+    "keywords": "drawio diagram reconstruction canvas region element connector XML editable fidelity visual reference",
+    "instruction": "把用户提供的图片或描述拆成 Draw.io 重构规范：画布、区域、元素清单、文字、连接线、颜色、尺寸、层级和适合的原生元素或图像介质。当前文本聊天不能实际读取未上传的图、导出 .drawio 或完成逐像素视觉验收，因此只能交付重构计划或 XML 结构建议；必须明确这些边界，绝不声称文件已经生成、导出或验证。"
+  },
+  "vibe-research-workflow": {
+    "label": "AI 辅助研究流程",
+    "mode": "research-design",
+    "keywords": "vibe coding figure writing AI assisted research workflow tool milestone verification integrity",
+    "instruction": "先判断任务属于 Vibe Coding、Vibe Figure、Vibe Writing 或混合流程，再设计工具、步骤、里程碑、人工判断点和验收方式。用户保留研究问题、设计、核心结论与事实准确性的所有权；AI 可加速检索整理、实现、制图和语言表达，但不得捏造引用、数据、结果或代替学术判断。输出最后必须包含验证清单和学校或期刊 AI 披露提醒。"
+  }
+}

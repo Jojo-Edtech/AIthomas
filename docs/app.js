@@ -17,6 +17,20 @@ const WORKFLOW_TEMPLATES = {
   "paragraph-feedback": { mode: "writing-feedback", labelKey: "wfParagraph", promptKey: "wfParagraphPrompt" }
 };
 
+const SUPERVISOR_SKILL_TEMPLATES = {
+  "idea-evaluator": { mode: "research-design", labelKey: "skillIdea", descriptionKey: "skillIdeaDesc", promptKey: "skillIdeaPrompt" },
+  "deep-research": { mode: "literature-position", labelKey: "skillDeepResearch", descriptionKey: "skillDeepResearchDesc", promptKey: "skillDeepResearchPrompt" },
+  "intro-drafter": { mode: "writing-feedback", labelKey: "skillIntro", descriptionKey: "skillIntroDesc", promptKey: "skillIntroPrompt" },
+  "paper-writer": { mode: "writing-feedback", labelKey: "skillWriter", descriptionKey: "skillWriterDesc", promptKey: "skillWriterPrompt" },
+  "paper-polish": { mode: "writing-feedback", labelKey: "skillPolish", descriptionKey: "skillPolishDesc", promptKey: "skillPolishPrompt" },
+  "pre-submission-reviewer": { mode: "writing-feedback", labelKey: "skillReview", descriptionKey: "skillReviewDesc", promptKey: "skillReviewPrompt" },
+  "tech-paper-template": { mode: "research-design", labelKey: "skillTechTemplate", descriptionKey: "skillTechTemplateDesc", promptKey: "skillTechTemplatePrompt" },
+  "benchmark-paper-template": { mode: "research-design", labelKey: "skillBenchmark", descriptionKey: "skillBenchmarkDesc", promptKey: "skillBenchmarkPrompt" },
+  "figure-designer": { mode: "research-design", labelKey: "skillFigure", descriptionKey: "skillFigureDesc", promptKey: "skillFigurePrompt" },
+  "drawio-reconstruction": { mode: "research-design", labelKey: "skillDrawio", descriptionKey: "skillDrawioDesc", promptKey: "skillDrawioPrompt" },
+  "vibe-research-workflow": { mode: "research-design", labelKey: "skillVibe", descriptionKey: "skillVibeDesc", promptKey: "skillVibePrompt" }
+};
+
 let lang = window.AI_THOMAS_I18N.detectLang();
 let lastStatus = null;
 let statusError = false;
@@ -44,6 +58,7 @@ const state = {
   activeConversationId: loadActiveConversationId(),
   mode: "research-design",
   workflow: null,
+  supervisorSkill: null,
   messages: [...DEFAULT_MESSAGES],
   mobilePanelCollapsed: loadMobilePanelCollapsed(),
   busy: false
@@ -66,6 +81,8 @@ const sendButton = document.querySelector("#sendButton");
 const modeGrid = document.querySelector("#modeGrid");
 const workflowGrid = document.querySelector("#workflowGrid");
 const workflowChip = document.querySelector("#workflowChip");
+const supervisorSkillSelect = document.querySelector("#supervisorSkillSelect");
+const supervisorSkillDescription = document.querySelector("#supervisorSkillDescription");
 const quickRow = document.querySelector("#quickRow");
 const clearButton = document.querySelector("#clearButton");
 const corpusStatus = document.querySelector("#corpusStatus");
@@ -85,6 +102,7 @@ async function init() {
   applyI18n();
   renderMessages();
   renderWorkflowButtons();
+  renderSupervisorSkillSelector();
   await loadStatus();
   await refreshAuth();
 }
@@ -99,6 +117,7 @@ function setLang(nextLang) {
   applyI18n();
   renderMessages();
   renderWorkflowButtons();
+  renderSupervisorSkillSelector();
   renderConversationList();
 }
 
@@ -163,7 +182,9 @@ modeGrid.addEventListener("click", (event) => {
   if (!button) return;
   setMode(button.dataset.mode);
   state.workflow = null;
+  state.supervisorSkill = null;
   renderWorkflowButtons();
+  renderSupervisorSkillSelector();
 });
 
 workflowGrid?.addEventListener("click", (event) => {
@@ -173,12 +194,30 @@ workflowGrid?.addEventListener("click", (event) => {
   const template = WORKFLOW_TEMPLATES[workflow];
   if (!template) return;
   state.workflow = workflow;
+  state.supervisorSkill = null;
   setMode(template.mode);
   renderWorkflowButtons();
+  renderSupervisorSkillSelector();
   input.value = t(template.promptKey);
   resizeInput();
   input.focus();
   input.setSelectionRange(input.value.length, input.value.length);
+});
+
+supervisorSkillSelect?.addEventListener("change", () => {
+  const supervisorSkill = supervisorSkillSelect.value;
+  const template = SUPERVISOR_SKILL_TEMPLATES[supervisorSkill];
+  state.supervisorSkill = template ? supervisorSkill : null;
+  if (template) {
+    state.workflow = null;
+    setMode(template.mode);
+    input.value = t(template.promptKey);
+    resizeInput();
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+  }
+  renderWorkflowButtons();
+  renderSupervisorSkillSelector();
 });
 
 conversationList?.addEventListener("click", async (event) => {
@@ -400,9 +439,16 @@ async function createConversation() {
     return;
   }
   state.conversations = result.data.conversations || [];
-  state.activeConversationId = result.data.conversation.id;
-  state.messages = result.data.conversation.messages?.length ? result.data.conversation.messages : [...DEFAULT_MESSAGES];
+  const conversation = result.data.conversation;
+  state.activeConversationId = conversation.id;
+  state.mode = conversation.mode || "research-design";
+  state.workflow = conversation.workflow || null;
+  state.supervisorSkill = conversation.supervisorSkill || null;
+  state.messages = conversation.messages?.length ? conversation.messages : [...DEFAULT_MESSAGES];
   saveActiveConversationId();
+  setMode(state.mode);
+  renderWorkflowButtons();
+  renderSupervisorSkillSelector();
   renderConversationList();
   renderMessages();
 }
@@ -421,12 +467,14 @@ async function loadConversation(conversationId) {
   }
   const conversation = result.data.conversation;
   state.activeConversationId = conversation.id;
-  state.mode = conversation.mode || state.mode;
-  state.workflow = conversation.workflow || state.workflow;
+  state.mode = conversation.mode || "research-design";
+  state.workflow = conversation.workflow || null;
+  state.supervisorSkill = conversation.supervisorSkill || null;
   state.messages = conversation.messages?.length ? conversation.messages : [...DEFAULT_MESSAGES];
   saveActiveConversationId();
   setMode(state.mode);
   renderWorkflowButtons();
+  renderSupervisorSkillSelector();
   renderConversationList();
   renderMessages();
 }
@@ -463,7 +511,8 @@ async function sendMessage(content) {
         conversationId: state.activeConversationId,
         message: content,
         mode: state.mode,
-        workflow: state.workflow
+        workflow: state.workflow,
+        supervisorSkill: state.supervisorSkill
       }
     });
     state.messages = state.messages.filter((message) => !message.loading);
@@ -591,8 +640,38 @@ function renderWorkflowButtons() {
 
   if (workflowChip) {
     const workflow = WORKFLOW_TEMPLATES[state.workflow];
-    workflowChip.hidden = !workflow;
-    workflowChip.textContent = workflow ? `${t("activeTool")}${t(workflow.labelKey)}` : "";
+    const supervisorSkill = SUPERVISOR_SKILL_TEMPLATES[state.supervisorSkill];
+    workflowChip.hidden = !workflow && !supervisorSkill;
+    workflowChip.textContent = supervisorSkill
+      ? `${t("activeSkill")}${t(supervisorSkill.labelKey)}`
+      : workflow
+        ? `${t("activeTool")}${t(workflow.labelKey)}`
+        : "";
+  }
+}
+
+function renderSupervisorSkillSelector() {
+  if (!supervisorSkillSelect) return;
+  supervisorSkillSelect.innerHTML = "";
+
+  const emptyOption = document.createElement("option");
+  emptyOption.value = "";
+  emptyOption.textContent = t("supervisorNone");
+  supervisorSkillSelect.appendChild(emptyOption);
+
+  for (const [id, template] of Object.entries(SUPERVISOR_SKILL_TEMPLATES)) {
+    const option = document.createElement("option");
+    option.value = id;
+    option.textContent = t(template.labelKey);
+    supervisorSkillSelect.appendChild(option);
+  }
+
+  supervisorSkillSelect.value = SUPERVISOR_SKILL_TEMPLATES[state.supervisorSkill] ? state.supervisorSkill : "";
+  const template = SUPERVISOR_SKILL_TEMPLATES[state.supervisorSkill];
+  if (supervisorSkillDescription) {
+    supervisorSkillDescription.textContent = template
+      ? t(template.descriptionKey)
+      : t("supervisorDefaultDescription");
   }
 }
 
@@ -684,8 +763,13 @@ function renderMessages() {
       sourceLabel.textContent = "Evidence used";
       sources.appendChild(sourceLabel);
       for (const source of message.sources) {
-        const chip = document.createElement("span");
+        const chip = document.createElement(source.url ? "a" : "span");
         chip.className = "source-chip";
+        if (source.url) {
+          chip.href = source.url;
+          chip.target = "_blank";
+          chip.rel = "noreferrer";
+        }
         chip.textContent = source.row
           ? `#${source.row} · ${source.year || ""} · ${source.title}`
           : source.title;

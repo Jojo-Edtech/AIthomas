@@ -955,8 +955,34 @@ p {
   }
 
   .brand-block {
-    grid-template-columns: 46px minmax(0, 1fr);
+    grid-template-columns: 46px minmax(0, 1fr) auto;
     gap: 11px;
+  }
+
+  .mobile-panel-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    padding: 0 11px;
+    border: 1px solid rgba(124, 151, 205, 0.82);
+    border-radius: 8px;
+    color: #1b2a52;
+    background: rgba(248, 251, 255, 0.76);
+    font-size: 12px;
+    font-weight: 820;
+    white-space: nowrap;
+  }
+
+  .app-shell.mobile-panel-collapsed .workspace-sidebar {
+    grid-template-columns: 1fr;
+    max-height: none;
+    padding: 10px 14px;
+    overflow: hidden;
+  }
+
+  .app-shell.mobile-panel-collapsed .workspace-sidebar > :not(.brand-block) {
+    display: none;
   }
 
   .brand-mark {
@@ -972,6 +998,7 @@ p {
   .account-section,
   .conversation-section,
   .mode-section,
+  .supervisor-section,
   .workflow-section,
   .knowledge-section {
     padding-top: 0;
@@ -981,6 +1008,7 @@ p {
   .status-section,
   .conversation-section,
   .mode-section,
+  .supervisor-section,
   .workflow-section,
   .knowledge-section {
     grid-column: 1 / -1;
@@ -1195,6 +1223,10 @@ p {
     order: 4;
   }
 
+  .supervisor-section {
+    order: 4;
+  }
+
   .conversation-section {
     order: 5;
   }
@@ -1351,6 +1383,56 @@ textarea:focus-visible {
 
 .sidebar-section {
   border-top-color: rgba(153, 179, 220, 0.48);
+}
+
+.supervisor-label {
+  display: block;
+  margin: 0 0 7px;
+  color: #4f6080;
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.supervisor-select {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid #a9bee3;
+  border-radius: 8px;
+  color: var(--ink);
+  background: rgba(248, 251, 255, 0.9);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 720;
+}
+
+.supervisor-select:hover {
+  border-color: #88a8df;
+  background: #f4f8ff;
+}
+
+.supervisor-select:focus-visible {
+  outline: 2px solid rgba(239, 198, 92, 0.8);
+  outline-offset: 2px;
+}
+
+.supervisor-description {
+  min-height: 36px;
+  margin: 8px 0 5px;
+  color: #596b89;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.supervisor-source {
+  color: #315da8;
+  font-size: 11px;
+  font-weight: 720;
+  text-decoration: none;
+}
+
+.supervisor-source:hover {
+  text-decoration: underline;
 }
 
 .status-dot.ok {
@@ -1594,6 +1676,13 @@ textarea:focus-visible {
   border-color: #c9d8ef;
   color: #42526c;
   background: #eef4ff;
+  text-decoration: none;
+}
+
+a.source-chip:hover {
+  border-color: #93b0e5;
+  color: #284f99;
+  background: #e5efff;
 }
 
 .composer {
@@ -1796,13 +1885,52 @@ textarea:focus-visible {
     display: none;
   }
 
+  .supervisor-section {
+    padding-top: 8px;
+  }
+
+  .supervisor-section h2 {
+    margin-bottom: 6px;
+    font-size: 12px;
+  }
+
+  .supervisor-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .supervisor-select {
+    min-height: 38px;
+    padding: 7px 9px;
+    font-size: 13px;
+  }
+
+  .supervisor-description {
+    min-height: 0;
+    margin: 5px 0 0;
+    font-size: 11px;
+    line-height: 1.4;
+  }
+
+  .supervisor-source {
+    display: none;
+  }
+
   .app-shell.mobile-panel-collapsed .workspace-sidebar {
     max-height: none;
     padding: 8px 10px;
   }
 
   .app-shell.mobile-panel-collapsed .status-section,
-  .app-shell.mobile-panel-collapsed .mode-section {
+  .app-shell.mobile-panel-collapsed .mode-section,
+  .app-shell.mobile-panel-collapsed .supervisor-section {
     display: none;
   }
 
@@ -1888,6 +2016,7 @@ textarea:focus-visible {
 
   .composer textarea {
     min-height: 46px;
+    max-height: 92px;
     padding: 8px 10px;
   }
 

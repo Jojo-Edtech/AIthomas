@@ -30,6 +30,14 @@ The GitHub Pages frontend in `docs/` calls the protected Cloudflare Worker backe
 
 The frontend includes five workflow templates: research matrix, concept boundary, variable model, paper pipeline, and paragraph feedback. Each workflow fills a structured prompt, sets the matching research mode, and sends a `workflow` id to `/api/chat`. The backend keeps plain chat backward-compatible while adding workflow-specific output requirements such as tables, actionable steps, research mentor rationale, and evidence boundaries.
 
+## Supervisor Skills
+
+AI Thomas also includes 11 selectable research guidance protocols adapted from [HKUST DIAL Supervisor-Skills](https://github.com/HKUSTDial/Supervisor-Skills): idea evaluation, deep literature synthesis, Introduction drafting, paper writing, academic polishing, pre-submission review, technical-paper planning, benchmark-paper planning, figure design, Draw.io reconstruction planning, and AI-assisted research workflow design.
+
+The selected `supervisorSkill` is validated by the backend, saved with the current anonymous conversation, and restored when that conversation is reopened. It changes the research procedure used for the response; it does not change the evidence base or represent the supervisor's personal opinion. The local corpus remains the grounding source.
+
+Capability boundaries are explicit. The public chat cannot run a live scholarly search, so the deep-research protocol reports corpus gaps rather than inventing citations. It also cannot export or visually verify a `.drawio` file, so the Draw.io protocol returns a reconstruction specification only. Attribution and adaptation details are in [`SUPERVISOR_SKILLS_NOTICE.md`](SUPERVISOR_SKILLS_NOTICE.md).
+
 ## Anonymous Guest Sessions
 
 AI Thomas defaults to anonymous guest workspaces. With `ACCESS_MODE=anonymous`, anyone with the link can use the app without signing in. The backend creates a secure `ai_thomas_session` cookie for each browser profile and stores that visitor's conversations under `.data/conversations/<anonymousUserId>/`, so one visitor cannot list, read, delete, or continue another visitor's chat history.

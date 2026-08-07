@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AI Thomas Research Mentor</title>
-    <link rel="stylesheet" href="styles.css?v=i18n-v2">
+    <link rel="stylesheet" href="styles.css?v=supervisor-v1">
   </head>
   <body>
     <section class="login-screen" id="loginScreen" hidden>
@@ -45,6 +45,14 @@
           <h2 data-i18n="workspaceHeading">当前工作区</h2>
           <p class="user-badge" id="userBadge">Not signed in</p>
           <button class="logout-button" id="logoutButton" type="button">重置访客身份</button>
+        </section>
+
+        <section class="sidebar-section supervisor-section" aria-label="科研指导技能">
+          <h2 data-i18n="supervisorHeading">科研指导技能</h2>
+          <label class="supervisor-label" for="supervisorSkillSelect" data-i18n="supervisorSelectLabel">选择一个指导协议</label>
+          <select class="supervisor-select" id="supervisorSkillSelect"></select>
+          <p class="supervisor-description" id="supervisorSkillDescription"></p>
+          <a class="supervisor-source" href="https://github.com/HKUSTDial/Supervisor-Skills" target="_blank" rel="noreferrer" data-i18n="supervisorSource">方法来源：HKUST DIAL Supervisor-Skills</a>
         </section>
 
         <section class="sidebar-section conversation-section" aria-label="会话记录">
@@ -152,7 +160,7 @@
     </div>
 
     <script src="config.js"></script>
-    <script src="i18n.js?v=i18n-v2"></script>
-    <script src="app.js?v=i18n-v2"></script>
+    <script src="i18n.js?v=supervisor-v1"></script>
+    <script src="app.js?v=supervisor-v1"></script>
   </body>
 </html>

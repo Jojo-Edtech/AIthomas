@@ -2,6 +2,7 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const SUPERVISOR_SKILL_CONFIG = require("./worker/supervisor-skills.json");
 
 const ROOT_DIR = __dirname;
 const PUBLIC_DIR = path.join(ROOT_DIR, "public");
@@ -362,11 +363,12 @@ const WORKFLOW_CONFIG = {
   }
 };
 
-function selectContext(query, mode, workflow) {
+function selectContext(query, mode, workflow, supervisorSkill) {
   const corpus = loadCorpus();
   const modeConfig = MODE_CONFIG[mode] || MODE_CONFIG["research-design"];
   const workflowConfig = WORKFLOW_CONFIG[workflow] || null;
-  const terms = extractTerms(`${query} ${modeConfig.keywords} ${workflowConfig?.keywords || ""}`);
+  const supervisorSkillConfig = SUPERVISOR_SKILL_CONFIG[supervisorSkill] || null;
+  const terms = extractTerms(`${query} ${modeConfig.keywords} ${workflowConfig?.keywords || ""} ${supervisorSkillConfig?.keywords || ""}`);
   const scored = corpus.chunks.map((chunk) => ({
     chunk,
     score: scoreChunk(chunk, terms, query)
@@ -444,10 +446,11 @@ function scoreChunk(chunk, terms, rawQuery) {
   return score;
 }
 
-function buildSystemPrompt(mode, selectedChunks, workflow) {
+function buildSystemPrompt(mode, selectedChunks, workflow, supervisorSkill) {
   const corpus = loadCorpus();
   const modeConfig = MODE_CONFIG[mode] || MODE_CONFIG["research-design"];
   const workflowConfig = WORKFLOW_CONFIG[workflow] || null;
+  const supervisorSkillConfig = SUPERVISOR_SKILL_CONFIG[supervisorSkill] || null;
   const selectedContext = selectedChunks.map((chunk, index) => {
     const source = chunk.row ? `#${chunk.row} ${chunk.year || ""} ${chunk.title}` : chunk.title;
     return [
@@ -462,6 +465,7 @@ function buildSystemPrompt(mode, selectedChunks, workflow) {
 
 当前回答模式：${modeConfig.label}
 ${workflowConfig ? `当前研究工具：${workflowConfig.label}\n${workflowConfig.instruction}` : ""}
+${supervisorSkillConfig ? `当前科研指导技能：${supervisorSkillConfig.label}\n${supervisorSkillConfig.instruction}` : ""}
 语料边界：核心语料为已下载并抽取的 38 篇 Thomas K. F. Chiu 一作 PDF；扩展语料为 12 篇 WoS Reprint Addresses 标记 Thomas K. F. Chiu 为通讯作者的 PDF。另有 6 篇 Thomas 一作论文和 22 篇通讯作者候选文献暂不在知识底座中，不能编造其细节。REL01 Fu (2025)、REL02 Liu et al. (2025) 与 M01 AERE reviewer 稿件是本地隔离材料，不属于 AI Thomas 证据。回答时要区分“一作核心语料”和“通讯作者扩展语料”。
 
 本地研究模式摘要：
@@ -474,6 +478,7 @@ ${selectedContext}
 - 用中文回答，除非用户明确要求英文。
 - 不冒充 Thomas 本人，不模拟导师人格，不使用“Thomas 式”“像 Thomas 一样”“Thomas Reasoning”这类个人化或崇拜式表述。
 - 定位是 24 小时科研导师助手：基于本地论文语料、教育研究规范和课题组常见讨论方式，帮助用户回应 research idea、拆问题、给写作和方法反馈。
+- Supervisor-Skills 只提供研究工作协议，不改变事实证据来源；不得把方法协议写成 Thomas 本人的观点。
 - 主要转述和综合，不大段引用论文原文。
 - 对研究问题给出可执行框架：教育问题、对象、机制、变量/维度、方法、伦理/well-being/policy。
 - 回答要像研究工作台输出，不要像长篇散文。优先使用清楚的小标题、短段落、项目符号和 Markdown 表格。
@@ -501,7 +506,7 @@ function publicSources(selectedChunks) {
   return sources.slice(0, 8);
 }
 
-async function callDeepSeek(messages, mode, workflow) {
+async function callDeepSeek(messages, mode, workflow, supervisorSkill) {
   const apiKey = process.env.DEEPSEEK_API_KEY;
   if (!apiKey) {
     return {
@@ -514,8 +519,8 @@ async function callDeepSeek(messages, mode, workflow) {
   }
 
   const latestUser = [...messages].reverse().find((message) => message.role === "user")?.content || "";
-  const selectedChunks = selectContext(latestUser, mode, workflow);
-  const systemPrompt = buildSystemPrompt(mode, selectedChunks, workflow);
+  const selectedChunks = selectContext(latestUser, mode, workflow, supervisorSkill);
+  const systemPrompt = buildSystemPrompt(mode, selectedChunks, workflow, supervisorSkill);
   const safeMessages = messages
     .filter((message) => ["user", "assistant"].includes(message.role))
     .slice(-10)
@@ -561,13 +566,22 @@ async function callDeepSeek(messages, mode, workflow) {
     }
 
     const answer = data?.choices?.[0]?.message?.content || "";
+    const sources = publicSources(selectedChunks);
+    if (SUPERVISOR_SKILL_CONFIG[supervisorSkill]) {
+      sources.push({
+        title: "HKUST DIAL Supervisor-Skills methodology",
+        type: "methodology",
+        url: "https://github.com/HKUSTDial/Supervisor-Skills"
+      });
+    }
     return {
       status: 200,
       body: {
         answer,
         model: MODEL,
-        sources: publicSources(selectedChunks),
-        workflow: WORKFLOW_CONFIG[workflow] ? workflow : null
+        sources,
+        workflow: WORKFLOW_CONFIG[workflow] ? workflow : null,
+        supervisorSkill: SUPERVISOR_SKILL_CONFIG[supervisorSkill] ? supervisorSkill : null
       }
     };
   } catch (error) {
@@ -827,6 +841,7 @@ function createConversation(user, title = "New conversation") {
     updatedAt: now,
     mode: "research-design",
     workflow: null,
+    supervisorSkill: null,
     messages: []
   };
   writeConversation(conversation);
@@ -881,6 +896,7 @@ function serializeConversation(conversation) {
     updatedAt: conversation.updatedAt,
     mode: conversation.mode || "research-design",
     workflow: conversation.workflow || null,
+    supervisorSkill: conversation.supervisorSkill || null,
     messages: Array.isArray(conversation.messages) ? conversation.messages : []
   };
 }
@@ -1035,6 +1051,7 @@ async function handleApi(req, res) {
       paperCount: corpus.paperCount,
       chunkCount: corpus.chunks.length,
       missingCount: corpus.missingCount,
+      supervisorSkillCount: Object.keys(SUPERVISOR_SKILL_CONFIG).length,
       limits: {
         perHour: LIMITS.perHour,
         perDay: LIMITS.perDay,
@@ -1149,8 +1166,11 @@ async function handleApi(req, res) {
   if (req.method === "POST" && pathname === "/api/chat") {
     const body = await readRequestBody(req);
     const payload = safeJson(body, {});
-    const mode = payload.mode || "research-design";
-    const workflow = WORKFLOW_CONFIG[payload.workflow] ? payload.workflow : null;
+    const supervisorSkill = SUPERVISOR_SKILL_CONFIG[payload.supervisorSkill] ? payload.supervisorSkill : null;
+    const mode = supervisorSkill
+      ? SUPERVISOR_SKILL_CONFIG[supervisorSkill].mode
+      : MODE_CONFIG[payload.mode] ? payload.mode : "research-design";
+    const workflow = supervisorSkill ? null : WORKFLOW_CONFIG[payload.workflow] ? payload.workflow : null;
 
     if (ACCESS_MODE === "open" && Array.isArray(payload.messages) && !payload.message && !payload.conversationId) {
       const messages = payload.messages;
@@ -1158,7 +1178,7 @@ async function handleApi(req, res) {
       if (!usage.ok) {
         return sendJson(res, usage.status, { error: "usage_limit_reached", message: usage.message });
       }
-      const result = await callDeepSeek(messages, mode, workflow);
+      const result = await callDeepSeek(messages, mode, workflow, supervisorSkill);
       return sendJson(res, result.status, result.body);
     }
 
@@ -1201,14 +1221,16 @@ async function handleApi(req, res) {
     }
     conversation.mode = mode;
     conversation.workflow = workflow;
+    conversation.supervisorSkill = supervisorSkill;
     conversation.updatedAt = new Date().toISOString();
     writeConversation(conversation);
 
-    const result = await callDeepSeek(messages, mode, workflow);
+    const result = await callDeepSeek(messages, mode, workflow, supervisorSkill);
     if (result.status === 200) {
       const assistantMessage = makeMessage("assistant", result.body.answer || "", {
         sources: result.body.sources || [],
-        workflow: result.body.workflow || null
+        workflow: result.body.workflow || null,
+        supervisorSkill: result.body.supervisorSkill || null
       });
       conversation.messages.push(assistantMessage);
       conversation.updatedAt = assistantMessage.createdAt;

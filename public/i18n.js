@@ -40,6 +40,34 @@
       wfPipelineCopy: "1/3/5 年 pipeline",
       wfParagraph: "段落反馈",
       wfParagraphCopy: "诊断、改写、保留",
+      supervisorHeading: "科研指导技能",
+      supervisorSelectLabel: "选择一个指导协议",
+      supervisorNone: "不使用特定技能",
+      supervisorDefaultDescription: "选择后会自动填入起始提示，并在当前会话中持续使用。",
+      supervisorSource: "方法来源：HKUST DIAL Supervisor-Skills",
+      activeSkill: "当前技能：",
+      skillIdea: "研究想法评估",
+      skillIdeaDesc: "审查贡献、可行性、致命缺陷与最小验证路径。",
+      skillDeepResearch: "深度文献梳理",
+      skillDeepResearchDesc: "冻结研究问题，用现有语料做可追溯的证据综合。",
+      skillIntro: "Introduction 草拟",
+      skillIntroDesc: "按研究范式组织问题、缺口、目标与贡献。",
+      skillWriter: "论文写作",
+      skillWriterDesc: "把已有材料写成证据强度匹配的学术文本。",
+      skillPolish: "学术润色",
+      skillPolishDesc: "保留原意，修复逻辑、语气、语法与 AI 腔。",
+      skillReview: "投稿前审查",
+      skillReviewDesc: "按严重程度检查逻辑、写作、格式与图表风险。",
+      skillTechTemplate: "技术论文框架",
+      skillTechTemplateDesc: "搭建背景、限制、核心想法、挑战与贡献链。",
+      skillBenchmark: "Benchmark 论文框架",
+      skillBenchmarkDesc: "审查研究缺口、构建流程、评估框架与发现。",
+      skillFigure: "论文图表设计",
+      skillFigureDesc: "规划核心图、布局、标注、工具与质量检查。",
+      skillDrawio: "Draw.io 重构规划",
+      skillDrawioDesc: "把参考图拆成可编辑重构规范，不虚报文件产出。",
+      skillVibe: "AI 辅助研究流程",
+      skillVibeDesc: "规划 coding、figure、writing 流程与学术诚信检查。",
       knowledgeHeading: "知识底座",
       newChat: "新建会话",
       clearAria: "清空当前对话",
@@ -66,7 +94,29 @@
       wfPipelinePrompt:
         "请作为科研导师助手，为下面的研究方向设计一个 1 年 / 3 年 / 5 年论文序列。\n\n研究方向：\n\n输出请包括：时间线表、每篇 paper 的理论/方法/贡献、可积累资产、证据边界。",
       wfParagraphPrompt:
-        "请作为科研导师助手，诊断并改写下面的论文段落。请指出逻辑问题、哪些内容保留、哪些需要删改。\n\n段落：\n\n输出请包括：问题诊断表、改写版本、可保留内容、需删除或弱化内容。"
+        "请作为科研导师助手，诊断并改写下面的论文段落。请指出逻辑问题、哪些内容保留、哪些需要删改。\n\n段落：\n\n输出请包括：问题诊断表、改写版本、可保留内容、需删除或弱化内容。",
+      skillIdeaPrompt:
+        "请用研究想法评估协议审查下面的 idea。判断研究类型与核心主张，检查致命缺陷、可行性、潜在贡献和最小验证路径；无法由本地语料确认的新颖性请标注“需外部检索验证”。\n\n我的研究想法：\n",
+      skillDeepResearchPrompt:
+        "请先把下面主题冻结成 2-3 个可回答的研究问题，再仅基于当前论文语料做深度文献梳理：给出主题分类、支持与反对证据、关键张力、缺口和对每个 RQ 的回答。语料不足处请明确列出，不要补造引用。\n\n研究主题：\n",
+      skillIntroPrompt:
+        "请根据下面材料草拟或重构 Introduction。先判断研究范式；技术研究可用六段逻辑，教育或社会科学研究请改用合适的引言结构。只使用我提供的材料和可追溯语料，不补造事实或引用。\n\n材料：\n",
+      skillWriterPrompt:
+        "请把下面材料写成可用于论文的学术文本。先确认目标章节和论证目的，让每个事实性主张都能追溯到我的材料或当前语料，并区分真实结果与计划/预期结果。\n\n材料与目标章节：\n",
+      skillPolishPrompt:
+        "请润色下面的学术文本：保留原意和术语，修复逻辑、语法、衔接与过强表述，去掉 AI 腔。请先给润色版本，再简要标出任何可能改变原意的修改。\n\n原文：\n",
+      skillReviewPrompt:
+        "请对下面的稿件内容做投稿前审查。问题优先，按 CRITICAL / MAJOR / MINOR 排序，并给出可直接执行的修复建议；证据不足的判断要明确说明。\n\n稿件或章节：\n",
+      skillTechTemplatePrompt:
+        "请把下面的技术研究想法整理成完整论文逻辑骨架：背景、现有限制、核心想法或目标、关键挑战、方法模块和贡献，并检查这些部分是否一一对应。\n\n研究想法：\n",
+      skillBenchmarkPrompt:
+        "请按 Benchmark 论文协议审查下面的研究：研究缺口、构建流程、评估框架、经验发现和可选 companion method。请给完整性表、Introduction 逻辑链和章节骨架。\n\nBenchmark 想法：\n",
+      skillFigurePrompt:
+        "请为下面的论文图表任务做设计方案。先判断是 motivated example、solution overview 还是 results figure，再给布局、标签、配色、工具和质量检查；未看到图片的项目请标注“需要用户验证”。\n\n图表目的与材料：\n",
+      skillDrawioPrompt:
+        "请把下面的参考图或描述拆成 Draw.io 重构规范：画布、区域、元素、连接线、文字、样式和可编辑实现方式。这里只输出重构计划或 XML 结构建议，不要声称已经导出或视觉验收文件。\n\n参考图说明：\n",
+      skillVibePrompt:
+        "请为下面的研究任务设计 AI 辅助工作流。判断它属于 Vibe Coding、Vibe Figure、Vibe Writing 或混合流程，列出工具、里程碑、人工判断点、验证步骤和学术诚信边界。\n\n研究任务：\n"
     },
     en: {
       langToggle: "中文",
@@ -106,6 +156,34 @@
       wfPipelineCopy: "1/3/5-year pipeline",
       wfParagraph: "Paragraph feedback",
       wfParagraphCopy: "Diagnose, rewrite, keep",
+      supervisorHeading: "Supervisor Skills",
+      supervisorSelectLabel: "Choose a guidance protocol",
+      supervisorNone: "No specific skill",
+      supervisorDefaultDescription: "Selecting a skill fills a starter prompt and keeps the protocol active in this conversation.",
+      supervisorSource: "Method source: HKUST DIAL Supervisor-Skills",
+      activeSkill: "Active skill: ",
+      skillIdea: "Research idea evaluation",
+      skillIdeaDesc: "Audit contribution, feasibility, fatal flaws, and the smallest validation path.",
+      skillDeepResearch: "Deep literature synthesis",
+      skillDeepResearchDesc: "Freeze research questions and synthesize traceable evidence from the available corpus.",
+      skillIntro: "Introduction drafting",
+      skillIntroDesc: "Organize the problem, gap, goal, and contribution for the research paradigm.",
+      skillWriter: "Paper writing",
+      skillWriterDesc: "Turn supplied material into academic prose calibrated to the evidence.",
+      skillPolish: "Academic polishing",
+      skillPolishDesc: "Preserve meaning while repairing logic, tone, grammar, and AI-like phrasing.",
+      skillReview: "Pre-submission review",
+      skillReviewDesc: "Prioritize logic, writing, formatting, and figure risks by severity.",
+      skillTechTemplate: "Technical paper template",
+      skillTechTemplateDesc: "Connect background, limitations, key idea, challenges, and contributions.",
+      skillBenchmark: "Benchmark paper template",
+      skillBenchmarkDesc: "Audit the gap, construction pipeline, evaluation framework, and findings.",
+      skillFigure: "Paper figure design",
+      skillFigureDesc: "Plan core figures, layout, labels, tools, and quality checks.",
+      skillDrawio: "Draw.io reconstruction plan",
+      skillDrawioDesc: "Turn a reference into an editable reconstruction specification without false delivery claims.",
+      skillVibe: "AI-assisted research workflow",
+      skillVibeDesc: "Plan coding, figure, and writing flows with integrity checkpoints.",
       knowledgeHeading: "Knowledge base",
       newChat: "New chat",
       clearAria: "Clear current conversation",
@@ -132,7 +210,29 @@
       wfPipelinePrompt:
         "As a research mentor assistant, design a 1-year / 3-year / 5-year paper pipeline for the research direction below.\n\nResearch direction:\n\nPlease include: a timeline table, the theory/method/contribution of each paper, reusable assets, and evidence boundaries.",
       wfParagraphPrompt:
-        "As a research mentor assistant, diagnose and rewrite the paper paragraph below. Point out logic issues, what to keep, and what to cut or revise.\n\nParagraph:\n\nPlease include: an issue diagnosis table, a rewritten version, content to keep, and content to delete or soften."
+        "As a research mentor assistant, diagnose and rewrite the paper paragraph below. Point out logic issues, what to keep, and what to cut or revise.\n\nParagraph:\n\nPlease include: an issue diagnosis table, a rewritten version, content to keep, and content to delete or soften.",
+      skillIdeaPrompt:
+        "Use the research idea evaluation protocol on the idea below. Identify the research type and core claim, audit fatal flaws, feasibility, potential contribution, and the smallest validation path. Mark novelty judgments that the local corpus cannot verify as requiring an external literature search.\n\nMy research idea:\n",
+      skillDeepResearchPrompt:
+        "Turn the topic below into 2-3 answerable research questions, then synthesize only the available paper corpus: taxonomy, supporting and opposing evidence, tensions, gaps, and an answer to each RQ. List coverage gaps explicitly and do not invent references.\n\nResearch topic:\n",
+      skillIntroPrompt:
+        "Draft or restructure an Introduction from the material below. First identify the research paradigm; use the six-part technical logic only when it fits, and use an appropriate education or social-science structure otherwise. Use only supplied or traceable evidence.\n\nMaterial:\n",
+      skillWriterPrompt:
+        "Turn the material below into paper-ready academic prose. Confirm the target section and argumentative purpose, keep every factual claim traceable to supplied or available evidence, and distinguish observed results from planned or expected results.\n\nMaterial and target section:\n",
+      skillPolishPrompt:
+        "Polish the academic text below while preserving its meaning and terminology. Repair logic, grammar, flow, and overclaiming, and remove AI-like phrasing. Give the polished version first, then flag any edit that may change meaning.\n\nOriginal text:\n",
+      skillReviewPrompt:
+        "Run a pre-submission review on the material below. Lead with findings ordered as CRITICAL, MAJOR, and MINOR, and give directly actionable fixes. State clearly when the available evidence is insufficient for a judgment.\n\nManuscript or section:\n",
+      skillTechTemplatePrompt:
+        "Turn the technical research idea below into a complete paper logic skeleton: background, existing limitations, key idea or goal, challenges, method modules, and contributions. Audit whether these elements map to one another.\n\nResearch idea:\n",
+      skillBenchmarkPrompt:
+        "Audit the benchmark idea below across the research gap, construction pipeline, evaluation framework, empirical findings, and optional companion method. Provide a completeness table, Introduction logic chain, and section skeleton.\n\nBenchmark idea:\n",
+      skillFigurePrompt:
+        "Design the paper figure task below. Identify whether it is a motivated example, solution overview, or results figure, then specify layout, labels, palette, tool, and quality checks. Mark image-dependent checks as requiring user verification when no image is available.\n\nFigure goal and material:\n",
+      skillDrawioPrompt:
+        "Turn the reference image or description below into a Draw.io reconstruction specification covering canvas, regions, elements, connectors, text, style, and editable implementation. Provide only a plan or XML structure guidance; do not claim that a file was exported or visually verified.\n\nReference description:\n",
+      skillVibePrompt:
+        "Design an AI-assisted research workflow for the task below. Classify it as Vibe Coding, Vibe Figure, Vibe Writing, or a mixed flow, then specify tools, milestones, human judgment points, verification, and academic-integrity boundaries.\n\nResearch task:\n"
     }
   };
 
