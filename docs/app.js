@@ -316,9 +316,9 @@ function renderStatus() {
   }
   const status = lastStatus;
   corpusStatus.textContent = t("statusCorpus", { p: status.paperCount, c: status.chunkCount });
-  paperCount.textContent = status.paperCount;
-  chunkCount.textContent = status.chunkCount;
-  missingCount.textContent = status.missingCount;
+  if (paperCount) paperCount.textContent = status.paperCount;
+  if (chunkCount) chunkCount.textContent = status.chunkCount;
+  if (missingCount) missingCount.textContent = status.missingCount;
   modelName.textContent = formatModelName(status.model);
   modelName.closest(".model-pill")?.setAttribute("title", String(status.model || "AI model"));
   const providerLabel = formatProviderName(status.provider);
@@ -546,26 +546,33 @@ function renderConversationList() {
   }
 
   for (const conversation of state.conversations) {
-    const item = document.createElement("button");
+    const item = document.createElement("div");
     item.className = "conversation-button";
-    item.type = "button";
-    item.dataset.conversationId = conversation.id;
     item.classList.toggle("active", conversation.id === state.activeConversationId);
+
+    const openButton = document.createElement("button");
+    openButton.className = "conversation-open";
+    openButton.type = "button";
+    openButton.dataset.conversationId = conversation.id;
 
     const title = document.createElement("span");
     title.className = "conversation-title";
     title.textContent = conversation.title || "New conversation";
+    title.title = title.textContent;
 
     const meta = document.createElement("span");
     meta.className = "conversation-meta";
     meta.textContent = t("messageCount", { count: conversation.messageCount || 0 });
 
-    const deleteButton = document.createElement("span");
+    const deleteButton = document.createElement("button");
     deleteButton.className = "conversation-delete";
+    deleteButton.type = "button";
     deleteButton.dataset.deleteConversation = conversation.id;
     deleteButton.textContent = t("deleteConversation");
+    deleteButton.setAttribute("aria-label", t("deleteConversation"));
 
-    item.append(title, meta, deleteButton);
+    openButton.append(title, meta);
+    item.append(openButton, deleteButton);
     conversationList.appendChild(item);
   }
 }

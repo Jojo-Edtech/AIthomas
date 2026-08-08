@@ -2636,3 +2636,320 @@ a.source-chip:hover {
     max-height: 92px;
   }
 }
+
+/* Sidebar hierarchy: conversations lead; service and workspace stay quiet. */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.workspace-sidebar {
+  gap: 0;
+  background: #d7e5f7;
+  box-shadow: 0 12px 30px rgba(28, 43, 90, 0.12);
+}
+
+.brand-block {
+  padding-bottom: 17px;
+  border-bottom: 1px solid rgba(118, 151, 204, 0.34);
+}
+
+.brand-block p {
+  margin-top: 3px;
+  font-size: 12px;
+}
+
+.header-title-compact {
+  display: none;
+}
+
+.sidebar-section {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.status-section {
+  padding: 14px 0 15px;
+  border-bottom: 1px solid rgba(118, 151, 204, 0.34);
+}
+
+.service-summary {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 9px;
+}
+
+.status-dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+}
+
+.key-status,
+.key-status.ok,
+.key-status.missing {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  color: #35506d;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 720;
+  line-height: 1.4;
+}
+
+.key-status.ok {
+  color: #21664d;
+}
+
+.key-status.missing {
+  color: #a64651;
+}
+
+.corpus-line {
+  margin: 4px 0 0 17px;
+  color: #687995;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.conversation-section {
+  padding: 17px 0;
+}
+
+.conversation-section .section-heading {
+  margin-bottom: 9px;
+}
+
+.sidebar-section h2 {
+  color: #53637e;
+  font-size: 12px;
+  font-weight: 780;
+}
+
+.mini-button {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0;
+  border-color: rgba(126, 156, 207, 0.62);
+  color: #29416f;
+  background: rgba(249, 252, 255, 0.64);
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.conversation-list {
+  gap: 6px;
+}
+
+.conversation-button {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid rgba(151, 177, 220, 0.66);
+  border-left: 3px solid transparent;
+  background: rgba(248, 251, 255, 0.52);
+  box-shadow: none;
+}
+
+.conversation-button.active {
+  border-color: #8caeed;
+  border-left-color: var(--gold);
+  background: rgba(234, 242, 255, 0.8);
+}
+
+.conversation-open {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+  width: 100%;
+  padding: 10px 44px 10px 11px;
+  border: 0;
+  color: var(--ink);
+  background: transparent;
+  text-align: left;
+}
+
+.conversation-open:hover {
+  background: rgba(255, 255, 255, 0.32);
+}
+
+.conversation-title {
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.conversation-meta {
+  grid-column: auto;
+  color: #6d7d98;
+  font-size: 11px;
+}
+
+.conversation-delete {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  grid-column: auto;
+  grid-row: auto;
+  min-height: 28px;
+  padding: 4px 6px;
+  transform: translateY(-50%);
+  border: 0;
+  color: #7b8ba7;
+  background: rgba(238, 244, 253, 0.96);
+  font-size: 10px;
+  opacity: 0;
+  transition: opacity 140ms ease, color 140ms ease, background 140ms ease;
+}
+
+.conversation-button:hover .conversation-delete,
+.conversation-delete:focus-visible {
+  opacity: 1;
+}
+
+.conversation-delete:hover {
+  color: #a64651;
+  background: #fff3f3;
+}
+
+.account-section {
+  margin-top: auto;
+  padding: 14px 0 1px;
+  border-top: 1px solid rgba(118, 151, 204, 0.34);
+}
+
+.account-label {
+  margin: 0 0 5px;
+  color: #71809b;
+  font-size: 10px;
+  font-weight: 760;
+}
+
+.account-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.user-badge {
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  color: #344967;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 720;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-section .logout-button {
+  flex: 0 0 auto;
+  width: auto;
+  min-height: 28px;
+  margin: 0;
+  padding: 0 8px;
+  border-color: transparent;
+  color: #687995;
+  background: transparent;
+  font-size: 10px;
+  font-weight: 720;
+}
+
+.account-section .logout-button:hover {
+  border-color: rgba(126, 156, 207, 0.6);
+  color: #29416f;
+  background: rgba(249, 252, 255, 0.55);
+}
+
+@media (min-width: 1101px) and (hover: hover) and (pointer: fine) {
+  .workspace-sidebar {
+    padding: 19px 18px;
+  }
+
+  .conversation-section {
+    min-height: 120px;
+  }
+
+  .conversation-button {
+    min-height: 0;
+    padding: 0;
+  }
+}
+
+@media (max-width: 1100px), (hover: none) and (pointer: coarse) {
+  .workspace-sidebar {
+    gap: 0;
+  }
+
+  .status-section {
+    display: block;
+    padding: 10px 0;
+  }
+
+  .account-section {
+    display: block;
+    margin-top: 0;
+    padding: 10px 0 0;
+  }
+
+  .account-row {
+    min-height: 30px;
+  }
+
+  .key-status,
+  .corpus-line,
+  .user-badge {
+    min-height: 0;
+    padding: 0;
+  }
+}
+
+@media (max-width: 620px) {
+  .header-title-full {
+    display: none;
+  }
+
+  .header-title-compact {
+    display: inline;
+  }
+
+  .brand-block {
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+
+  .app-shell:not(.mobile-panel-collapsed) .brand-block {
+    padding-bottom: 9px;
+    border-bottom: 1px solid rgba(118, 151, 204, 0.34);
+  }
+
+  .key-status {
+    font-size: 11px;
+  }
+
+  .corpus-line {
+    display: block;
+    font-size: 10px;
+  }
+}
