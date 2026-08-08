@@ -2422,6 +2422,16 @@ a.source-chip:hover {
   color: #202a42;
 }
 
+.message-content blockquote {
+  margin: 11px 0;
+  padding: 9px 11px;
+  border-left: 3px solid #7293d1;
+  border-radius: 0 6px 6px 0;
+  color: #3f5278;
+  background: #edf3fd;
+  line-height: 1.5;
+}
+
 .source-list {
   margin-top: 15px;
 }

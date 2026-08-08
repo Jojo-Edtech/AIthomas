@@ -786,6 +786,16 @@ function formatMessage(text) {
       continue;
     }
 
+    if (/^>\s?/.test(line)) {
+      const quoteLines = [];
+      while (index < lines.length && /^>\s?/.test(lines[index].trim())) {
+        quoteLines.push(lines[index].trim().replace(/^>\s?/, ""));
+        index += 1;
+      }
+      html.push(`<blockquote>${formatInline(quoteLines.join(" "))}</blockquote>`);
+      continue;
+    }
+
     if (isMarkdownTableStart(lines, index)) {
       const tableRows = [];
       tableRows.push(splitTableRow(lines[index]));
@@ -825,6 +835,7 @@ function formatMessage(text) {
       !/^---+$/.test(lines[index].trim()) &&
       !/^```/.test(lines[index].trim()) &&
       !/^#{2,4}\s+/.test(lines[index].trim()) &&
+      !/^>\s?/.test(lines[index].trim()) &&
       !isMarkdownTableStart(lines, index) &&
       !/^[-*]\s+/.test(lines[index].trim()) &&
       !/^\d+\.\s+/.test(lines[index].trim())
