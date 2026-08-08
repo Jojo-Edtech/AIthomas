@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AI Thomas Research Mentor</title>
-    <link rel="stylesheet" href="styles.css?v=supervisor-v2">
+    <link rel="stylesheet" href="styles.css?v=uiux-v3">
   </head>
   <body>
     <section class="login-screen" id="loginScreen" hidden>
@@ -52,7 +52,7 @@
           <label class="supervisor-label" for="supervisorSkillSelect" data-i18n="supervisorSelectLabel">选择一个指导协议</label>
           <select class="supervisor-select" id="supervisorSkillSelect"></select>
           <p class="supervisor-description" id="supervisorSkillDescription"></p>
-          <a class="supervisor-source" href="https://github.com/HKUSTDial/Supervisor-Skills" target="_blank" rel="noreferrer" data-i18n="supervisorSource">方法来源：HKUST DIAL Supervisor-Skills</a>
+          <a class="supervisor-source" id="supervisorSource" href="https://github.com/HKUSTDial/Supervisor-Skills" target="_blank" rel="noreferrer" data-i18n="supervisorSource">方法来源：HKUST DIAL Supervisor-Skills</a>
         </section>
 
         <section class="sidebar-section conversation-section" aria-label="会话记录">
@@ -138,9 +138,17 @@
             <h2 data-i18n="headerTitle">AI Thomas 科研导师</h2>
           </div>
           <div class="header-actions">
-            <span class="model-pill" id="modelName">DeepSeek V4 Flash</span>
-            <button class="clear-button lang-button" id="langToggle" type="button" aria-label="Switch language">EN</button>
-            <button class="clear-button" id="clearButton" type="button" aria-label="清空当前对话" data-i18n-aria="clearAria" data-i18n="newChat">新建会话</button>
+            <span class="model-pill" role="status" aria-live="polite">
+              <span class="model-status-dot" aria-hidden="true"></span>
+              <span id="modelName">DeepSeek V4 Flash</span>
+            </span>
+            <div class="header-command-group">
+              <button class="clear-button lang-button" id="langToggle" type="button" aria-label="Switch language">EN</button>
+              <button class="clear-button new-chat-button" id="clearButton" type="button" aria-label="清空当前对话" data-i18n-aria="clearAria">
+                <span class="new-chat-icon" aria-hidden="true">+</span>
+                <span class="new-chat-label" data-i18n="newChat">新建会话</span>
+              </button>
+            </div>
           </div>
         </header>
 
@@ -159,7 +167,7 @@
       </main>
     </div>
 
-    <script src="i18n.js?v=supervisor-v2"></script>
-    <script src="app.js?v=supervisor-v2"></script>
+    <script src="i18n.js?v=uiux-v3"></script>
+    <script src="app.js?v=uiux-v3"></script>
   </body>
 </html>

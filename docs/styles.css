@@ -2061,3 +2061,187 @@ a.source-chip:hover {
     overflow: hidden !important;
   }
 }
+
+/* Header controls: quiet model status, compact language switch, one clear command. */
+.workbench-header {
+  width: 100%;
+  min-width: 0;
+}
+
+.workbench-header > div:first-child {
+  min-width: 0;
+}
+
+.header-actions {
+  gap: 10px;
+}
+
+.model-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 12px 0 10px;
+  border-color: rgba(188, 205, 247, 0.24);
+  color: rgba(237, 245, 255, 0.82);
+  background: rgba(255, 255, 255, 0.045);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.model-status-dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #77b5ff;
+  box-shadow: 0 0 0 3px rgba(119, 181, 255, 0.14);
+}
+
+.header-command-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 40px;
+  padding: 3px;
+  border: 1px solid rgba(209, 222, 255, 0.28);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.workbench-header .header-command-group .clear-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 32px;
+  margin: 0;
+  border-color: transparent;
+  border-radius: 6px;
+  color: rgba(237, 245, 255, 0.84);
+  background: transparent;
+  font-size: 13px;
+  font-weight: 680;
+  line-height: 1;
+}
+
+.workbench-header .header-command-group .lang-button {
+  min-width: 42px;
+  padding: 0 9px;
+  font-variant-caps: normal;
+  letter-spacing: 0;
+}
+
+.workbench-header .header-command-group .new-chat-button {
+  min-width: 112px;
+  padding: 0 12px 0 9px;
+  border-color: rgba(209, 222, 255, 0.2);
+  color: #f7fbff;
+  background: rgba(255, 255, 255, 0.1);
+  font-weight: 760;
+}
+
+.new-chat-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 15px;
+  height: 15px;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.workbench-header .header-command-group .lang-button:hover {
+  border-color: transparent;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.workbench-header .header-command-group .new-chat-button:hover {
+  border-color: var(--gold);
+  color: #101842;
+  background: var(--gold);
+}
+
+.workbench-header .header-command-group .clear-button:focus-visible {
+  outline-color: rgba(239, 198, 92, 0.9);
+}
+
+@media (max-width: 900px) {
+  .model-pill {
+    display: none;
+  }
+}
+
+@media (max-width: 620px) {
+  .workbench-header {
+    min-height: 62px;
+  }
+
+  .workbench-header > div:first-child {
+    min-width: 0;
+  }
+
+  .workbench-header h2 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .workbench-header .header-actions {
+    margin-left: auto;
+  }
+
+  .header-command-group {
+    min-height: 48px;
+    padding: 2px;
+  }
+
+  .workbench-header .header-command-group .clear-button {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 9px;
+  }
+
+  .workbench-header .header-command-group .new-chat-button {
+    min-width: 44px;
+    width: 44px;
+    padding: 0;
+  }
+
+  .new-chat-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+@media (max-width: 360px) {
+  .workbench-header h2 {
+    font-size: 17px;
+  }
+
+  .workbench-header {
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

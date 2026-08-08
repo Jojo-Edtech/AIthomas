@@ -451,6 +451,7 @@ function buildSystemPrompt(mode, selectedChunks, workflow, supervisorSkill) {
   const modeConfig = MODE_CONFIG[mode] || MODE_CONFIG["research-design"];
   const workflowConfig = WORKFLOW_CONFIG[workflow] || null;
   const supervisorSkillConfig = SUPERVISOR_SKILL_CONFIG[supervisorSkill] || null;
+  const isInterfaceReview = supervisorSkill === "ui-ux-reviewer";
   const selectedContext = selectedChunks.map((chunk, index) => {
     const source = chunk.row ? `#${chunk.row} ${chunk.year || ""} ${chunk.title}` : chunk.title;
     return [
@@ -461,32 +462,46 @@ function buildSystemPrompt(mode, selectedChunks, workflow, supervisorSkill) {
     ].filter(Boolean).join("\n");
   }).join("\n\n---\n\n");
 
-  return `${corpus.prompt}
-
-当前回答模式：${modeConfig.label}
-${workflowConfig ? `当前研究工具：${workflowConfig.label}\n${workflowConfig.instruction}` : ""}
-${supervisorSkillConfig ? `当前科研指导技能：${supervisorSkillConfig.label}\n${supervisorSkillConfig.instruction}` : ""}
-语料边界：核心语料为已下载并抽取的 38 篇 Thomas K. F. Chiu 一作 PDF；扩展语料为 12 篇 WoS Reprint Addresses 标记 Thomas K. F. Chiu 为通讯作者的 PDF。另有 6 篇 Thomas 一作论文和 22 篇通讯作者候选文献暂不在知识底座中，不能编造其细节。REL01 Fu (2025)、REL02 Liu et al. (2025) 与 M01 AERE reviewer 稿件是本地隔离材料，不属于 AI Thomas 证据。回答时要区分“一作核心语料”和“通讯作者扩展语料”。
+  const basePrompt = isInterfaceReview
+    ? "# AI Thomas UI/UX Review\n\n你是 AI Thomas 工作台内的界面体验审查助手。你审查产品界面，但不冒充导师本人，也不把界面意见描述成任何人的个人研究观点。"
+    : corpus.prompt;
+  const groundingBlock = isInterfaceReview
+    ? "界面审查证据边界：本轮不使用本地论文语料作为 UI/UX 事实依据。唯一方法来源是经过改写的 UI/UX Pro Max 审查协议；输入中看不到的页面、状态和交互必须标记为需要实际页面验证。"
+    : `语料边界：核心语料为已下载并抽取的 38 篇 Thomas K. F. Chiu 一作 PDF；扩展语料为 12 篇 WoS Reprint Addresses 标记 Thomas K. F. Chiu 为通讯作者的 PDF。另有 6 篇 Thomas 一作论文和 22 篇通讯作者候选文献暂不在知识底座中，不能编造其细节。REL01 Fu (2025)、REL02 Liu et al. (2025) 与 M01 AERE reviewer 稿件是本地隔离材料，不属于 AI Thomas 证据。回答时要区分“一作核心语料”和“通讯作者扩展语料”。
 
 本地研究模式摘要：
 ${corpus.distilled.slice(0, 9000)}
 
 本轮检索到的相关来源：
-${selectedContext}
+${selectedContext}`;
+  const roleRules = isInterfaceReview
+    ? "- 界面审查回答中不得提及 Thomas、Chiu、Thomas Reasoning、本地论文语料或论文编号，也不得把界面建议写成导师个人观点。\n- 只把用户输入与 UI/UX Pro Max 改写协议作为依据；不能从文字描述推断已经发生的视觉故障。"
+    : "- 不冒充 Thomas 本人，不模拟导师人格。严禁使用‘Thomas 式’‘像 Thomas 一样’‘Thomas Reasoning’‘Thomas-style’‘Thomas/Chiu research pattern’‘alignment with Thomas/Chiu’或任何同义标题；直接描述可迁移的研究做法，并将依据写成‘本地论文语料’。\n- 定位是 24 小时科研导师助手：基于本地论文语料、教育研究规范和课题组常见讨论方式，帮助用户回应 research idea、拆问题、给写作和方法反馈。";
+  const taskRules = isInterfaceReview
+    ? "- 只输出界面审查需要的观察、待验证风险、修改规格和验收条件；不引入教育变量或论文论证。"
+    : "- 主要转述和综合，不大段引用论文原文。\n- 对研究问题给出可执行框架：教育问题、对象、机制、变量/维度、方法、伦理/well-being/policy。";
+
+  return `${basePrompt}
+
+当前回答模式：${modeConfig.label}
+${isInterfaceReview ? "优先给出可验证的界面问题、实现规格和响应式验收条件。" : modeConfig.instruction}
+${workflowConfig ? `当前研究工具：${workflowConfig.label}\n${workflowConfig.instruction}` : ""}
+${supervisorSkillConfig ? `当前科研指导技能：${supervisorSkillConfig.label}\n${supervisorSkillConfig.instruction}` : ""}
+
+${groundingBlock}
 
 回答要求：
 - 用中文回答，除非用户明确要求英文。
-- 不冒充 Thomas 本人，不模拟导师人格。严禁使用“Thomas 式”“像 Thomas 一样”“Thomas Reasoning”“Thomas-style”“Thomas/Chiu's research pattern”“alignment with Thomas/Chiu”或任何同义标题；直接描述可迁移的研究做法，并将依据写成“本地论文语料”。
-- 定位是 24 小时科研导师助手：基于本地论文语料、教育研究规范和课题组常见讨论方式，帮助用户回应 research idea、拆问题、给写作和方法反馈。
-- Supervisor-Skills 只提供研究工作协议，不改变事实证据来源；不得把方法协议写成 Thomas 本人的观点。
+${roleRules}
+- 外部 skills 只提供工作协议，不改变事实证据来源；不得把方法协议写成 Thomas 本人的观点，也不得声称执行了当前聊天不具备的浏览器、文件或视觉工具。
 - 不使用 emoji 或装饰性符号，保持专业、友好、直接。
-- 主要转述和综合，不大段引用论文原文。
-- 对研究问题给出可执行框架：教育问题、对象、机制、变量/维度、方法、伦理/well-being/policy。
+${taskRules}
 - 回答要像研究工作台输出，不要像长篇散文。优先使用清楚的小标题、短段落、项目符号和 Markdown 表格。
 - 当用户询问路径、策略、比较、概念边界、变量设计、论文结构、研究计划或“可复制做法”时，必须给出至少一个 Markdown 表格。
 - 表格要有实用列名，例如：问题类型、可借鉴研究做法、为什么有效、可执行动作、注意风险；不要只放空泛标签。
 - 复杂回答建议结构：一句话结论 -> 表格/矩阵 -> 3-5 条行动步骤 -> 证据边界或注意事项。
 - 如果回答超过 5 个要点，优先压缩成表格；避免连续 4 段以上的大段文字。
+- 明确说明证据边界：${isInterfaceReview ? "哪些是从输入中观察到的，哪些只是需要验证的风险。" : "哪些来自本地语料，哪些只是迁移建议。"}
 - 如果用户给论文段落，直接给更清晰、更像学术写作的版本。`;
 }
 
@@ -567,12 +582,13 @@ async function callDeepSeek(messages, mode, workflow, supervisorSkill) {
     }
 
     const answer = data?.choices?.[0]?.message?.content || "";
-    const sources = publicSources(selectedChunks);
+    const sources = supervisorSkill === "ui-ux-reviewer" ? [] : publicSources(selectedChunks);
     if (SUPERVISOR_SKILL_CONFIG[supervisorSkill]) {
+      const skillConfig = SUPERVISOR_SKILL_CONFIG[supervisorSkill];
       sources.push({
-        title: "HKUST DIAL Supervisor-Skills methodology",
+        title: skillConfig.sourceTitle || "HKUST DIAL Supervisor-Skills methodology",
         type: "methodology",
-        url: "https://github.com/HKUSTDial/Supervisor-Skills"
+        url: skillConfig.sourceUrl || "https://github.com/HKUSTDial/Supervisor-Skills"
       });
     }
     return {

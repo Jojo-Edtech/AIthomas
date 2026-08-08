@@ -28,7 +28,15 @@ const SUPERVISOR_SKILL_TEMPLATES = {
   "benchmark-paper-template": { mode: "research-design", labelKey: "skillBenchmark", descriptionKey: "skillBenchmarkDesc", promptKey: "skillBenchmarkPrompt" },
   "figure-designer": { mode: "research-design", labelKey: "skillFigure", descriptionKey: "skillFigureDesc", promptKey: "skillFigurePrompt" },
   "drawio-reconstruction": { mode: "research-design", labelKey: "skillDrawio", descriptionKey: "skillDrawioDesc", promptKey: "skillDrawioPrompt" },
-  "vibe-research-workflow": { mode: "research-design", labelKey: "skillVibe", descriptionKey: "skillVibeDesc", promptKey: "skillVibePrompt" }
+  "vibe-research-workflow": { mode: "research-design", labelKey: "skillVibe", descriptionKey: "skillVibeDesc", promptKey: "skillVibePrompt" },
+  "ui-ux-reviewer": {
+    mode: "research-design",
+    labelKey: "skillUiUx",
+    descriptionKey: "skillUiUxDesc",
+    promptKey: "skillUiUxPrompt",
+    sourceKey: "uiuxSource",
+    sourceUrl: "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill"
+  }
 };
 
 let lang = window.AI_THOMAS_I18N.detectLang();
@@ -83,6 +91,7 @@ const workflowGrid = document.querySelector("#workflowGrid");
 const workflowChip = document.querySelector("#workflowChip");
 const supervisorSkillSelect = document.querySelector("#supervisorSkillSelect");
 const supervisorSkillDescription = document.querySelector("#supervisorSkillDescription");
+const supervisorSource = document.querySelector("#supervisorSource");
 const quickRow = document.querySelector("#quickRow");
 const clearButton = document.querySelector("#clearButton");
 const corpusStatus = document.querySelector("#corpusStatus");
@@ -397,6 +406,7 @@ function renderStatus() {
   chunkCount.textContent = status.chunkCount;
   missingCount.textContent = status.missingCount;
   modelName.textContent = formatModelName(status.model);
+  modelName.closest(".model-pill")?.setAttribute("title", String(status.model || "AI model"));
   const providerLabel = formatProviderName(status.provider);
   const quotaLabel = status.freeQuotaProtected ? t("freeQuota") : "";
   keyStatus.textContent = status.hasApiKey
@@ -672,6 +682,12 @@ function renderSupervisorSkillSelector() {
     supervisorSkillDescription.textContent = template
       ? t(template.descriptionKey)
       : t("supervisorDefaultDescription");
+  }
+  if (supervisorSource) {
+    const sourceKey = template?.sourceKey || "supervisorSource";
+    supervisorSource.dataset.i18n = sourceKey;
+    supervisorSource.textContent = t(sourceKey);
+    supervisorSource.href = template?.sourceUrl || "https://github.com/HKUSTDial/Supervisor-Skills";
   }
 }
 

@@ -68,9 +68,12 @@
       skillDrawioDesc: "把参考图拆成可编辑重构规范，不虚报文件产出。",
       skillVibe: "AI 辅助研究流程",
       skillVibeDesc: "规划 coding、figure、writing 流程与学术诚信检查。",
+      skillUiUx: "界面体验审查",
+      skillUiUxDesc: "检查信息层级、控件一致性、响应式与可访问性，并给出可验收的修改规格。",
+      uiuxSource: "方法来源：UI/UX Pro Max（MIT）",
       knowledgeHeading: "知识底座",
       newChat: "新建会话",
-      clearAria: "清空当前对话",
+      clearAria: "新建空白会话",
       chatAria: "与 AI Thomas 持续讨论科研问题",
       composerPlaceholder: "输入研究 idea、段落或追问",
       send: "发送",
@@ -116,7 +119,9 @@
       skillDrawioPrompt:
         "请把下面的参考图或描述拆成 Draw.io 重构规范：画布、区域、元素、连接线、文字、样式和可编辑实现方式。这里只输出重构计划或 XML 结构建议，不要声称已经导出或视觉验收文件。\n\n参考图说明：\n",
       skillVibePrompt:
-        "请为下面的研究任务设计 AI 辅助工作流。判断它属于 Vibe Coding、Vibe Figure、Vibe Writing 或混合流程，列出工具、里程碑、人工判断点、验证步骤和学术诚信边界。\n\n研究任务：\n"
+        "请为下面的研究任务设计 AI 辅助工作流。判断它属于 Vibe Coding、Vibe Figure、Vibe Writing 或混合流程，列出工具、里程碑、人工判断点、验证步骤和学术诚信边界。\n\n研究任务：\n",
+      skillUiUxPrompt:
+        "请用界面体验审查协议评估下面的页面或组件。先说明目标用户、核心任务和主要操作，再检查信息层级、间距、排版、控件一致性、响应式、可访问性和关键状态。请给出按 P1 / P2 / P3 排序的问题表、具体修改规格，以及桌面端和移动端验收清单。若只有文字描述，请把问题写成‘待验证风险’，不要断言已经发生；看不到的状态请标注‘需要实际页面验证’。\n\n页面、截图说明或代码：\n"
     },
     en: {
       langToggle: "中文",
@@ -184,9 +189,12 @@
       skillDrawioDesc: "Turn a reference into an editable reconstruction specification without false delivery claims.",
       skillVibe: "AI-assisted research workflow",
       skillVibeDesc: "Plan coding, figure, and writing flows with integrity checkpoints.",
+      skillUiUx: "UI/UX review",
+      skillUiUxDesc: "Audit hierarchy, control consistency, responsiveness, and accessibility with testable change specifications.",
+      uiuxSource: "Method source: UI/UX Pro Max (MIT)",
       knowledgeHeading: "Knowledge base",
       newChat: "New chat",
-      clearAria: "Clear current conversation",
+      clearAria: "Start a blank conversation",
       chatAria: "Discuss research questions with AI Thomas",
       composerPlaceholder: "Type a research idea, a paragraph, or a follow-up",
       send: "Send",
@@ -232,7 +240,9 @@
       skillDrawioPrompt:
         "Turn the reference image or description below into a Draw.io reconstruction specification covering canvas, regions, elements, connectors, text, style, and editable implementation. Provide only a plan or XML structure guidance; do not claim that a file was exported or visually verified.\n\nReference description:\n",
       skillVibePrompt:
-        "Design an AI-assisted research workflow for the task below. Classify it as Vibe Coding, Vibe Figure, Vibe Writing, or a mixed flow, then specify tools, milestones, human judgment points, verification, and academic-integrity boundaries.\n\nResearch task:\n"
+        "Design an AI-assisted research workflow for the task below. Classify it as Vibe Coding, Vibe Figure, Vibe Writing, or a mixed flow, then specify tools, milestones, human judgment points, verification, and academic-integrity boundaries.\n\nResearch task:\n",
+      skillUiUxPrompt:
+        "Use the UI/UX review protocol on the page or component below. First state the target user, core job, and primary action, then audit information hierarchy, spacing, typography, control consistency, responsive behavior, accessibility, and key states. Provide a P1 / P2 / P3 findings table, concrete change specifications, and desktop/mobile acceptance checks. If the input is text-only, label issues as risks to verify rather than observed defects, and mark unseen states as requiring live-page verification.\n\nPage, screenshot description, or code:\n"
     }
   };
 

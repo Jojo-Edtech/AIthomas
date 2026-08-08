@@ -237,12 +237,15 @@ async function handleChat(request, env) {
     }, modelResult.status || 500);
   }
 
-  const sources = [{ title: "AI Thomas compact research mentor corpus", type: "distilled" }];
+  const sources = supervisorSkill === "ui-ux-reviewer"
+    ? []
+    : [{ title: "AI Thomas compact research mentor corpus", type: "distilled" }];
   if (supervisorSkill) {
+    const skillConfig = SUPERVISOR_SKILL_CONFIG[supervisorSkill];
     sources.push({
-      title: "HKUST DIAL Supervisor-Skills methodology",
+      title: skillConfig.sourceTitle || "HKUST DIAL Supervisor-Skills methodology",
       type: "methodology",
-      url: "https://github.com/HKUSTDial/Supervisor-Skills"
+      url: skillConfig.sourceUrl || "https://github.com/HKUSTDial/Supervisor-Skills"
     });
   }
   const assistantMessage = makeMessage("assistant", modelResult.answer, {
@@ -331,29 +334,38 @@ function buildSystemPrompt(mode, workflow, supervisorSkill) {
   const modeConfig = MODE_CONFIG[mode] || MODE_CONFIG["research-design"];
   const workflowConfig = WORKFLOW_CONFIG[workflow] || null;
   const supervisorSkillConfig = SUPERVISOR_SKILL_CONFIG[supervisorSkill] || null;
-  return `${BASE_SYSTEM_PROMPT}
-
-当前回答模式：${modeConfig.label}
-${modeConfig.instruction}
-${workflowConfig ? `当前研究工具：${workflowConfig.label}\n${workflowConfig.instruction}` : ""}
-${supervisorSkillConfig ? `当前科研指导技能：${supervisorSkillConfig.label}\n${supervisorSkillConfig.instruction}` : ""}
-
-压缩知识底座：
+  const isInterfaceReview = supervisorSkill === "ui-ux-reviewer";
+  const basePrompt = isInterfaceReview
+    ? "# AI Thomas UI/UX Review\n\n你是 AI Thomas 工作台内的界面体验审查助手。你审查产品界面，但不冒充导师本人，也不把界面意见描述成任何人的个人研究观点。"
+    : BASE_SYSTEM_PROMPT;
+  const groundingBlock = isInterfaceReview
+    ? "界面审查证据边界：本轮不使用本地论文语料作为 UI/UX 事实依据。唯一方法来源是经过改写的 UI/UX Pro Max 审查协议；输入中看不到的页面、状态和交互必须标记为需要实际页面验证。"
+    : `压缩知识底座：
 ${DISTILLED_KNOWLEDGE.slice(0, 9000)}
 
 论文矩阵摘要：
-${MATRIX_SUMMARY.slice(0, 7000)}
+${MATRIX_SUMMARY.slice(0, 7000)}`;
+  const roleRules = isInterfaceReview
+    ? "- 界面审查回答中不得提及 Thomas、Chiu、Thomas Reasoning、本地论文语料或论文编号，也不得把界面建议写成导师个人观点。\n- 只把用户输入与 UI/UX Pro Max 改写协议作为依据；不能从文字描述推断已经发生的视觉故障。"
+    : "- 不冒充导师本人，不使用个人崇拜式表述。严禁使用‘Thomas 式’‘Thomas-style’‘Thomas/Chiu research pattern’‘alignment with Thomas/Chiu’或任何同义标题；直接描述可迁移的研究做法，并将依据写成‘本地论文语料’。\n- 定位是 24 小时科研导师助手：基于本地论文语料、教育研究规范和课题组常见讨论方式，帮助用户回应 research idea、拆问题、给写作和方法反馈。";
+  return `${basePrompt}
+
+当前回答模式：${modeConfig.label}
+${isInterfaceReview ? "优先给出可验证的界面问题、实现规格和响应式验收条件。" : modeConfig.instruction}
+${workflowConfig ? `当前研究工具：${workflowConfig.label}\n${workflowConfig.instruction}` : ""}
+${supervisorSkillConfig ? `当前科研指导技能：${supervisorSkillConfig.label}\n${supervisorSkillConfig.instruction}` : ""}
+
+${groundingBlock}
 
 回答要求：
 - 用中文回答，除非用户明确要求英文。
-- 不冒充导师本人，不使用个人崇拜式表述。严禁使用“Thomas 式”“Thomas-style”“Thomas/Chiu's research pattern”“alignment with Thomas/Chiu”或任何同义标题；直接描述可迁移的研究做法，并将依据写成“本地论文语料”。
-- 定位是 24 小时科研导师助手：基于本地论文语料、教育研究规范和课题组常见讨论方式，帮助用户回应 research idea、拆问题、给写作和方法反馈。
-- Supervisor-Skills 只提供研究工作协议，不改变事实证据来源；不得把方法协议写成 Thomas 本人的观点。
+${roleRules}
+- 外部 skills 只提供工作协议，不改变事实证据来源；不得把方法协议写成 Thomas 本人的观点，也不得声称执行了当前聊天不具备的浏览器、文件或视觉工具。
 - 不使用 emoji 或装饰性符号，保持专业、友好、直接。
 - 优先使用清楚的小标题、短段落、项目符号和 Markdown 表格。
 - 当用户询问路径、策略、比较、概念边界、变量设计、论文结构、研究计划或可复制做法时，必须给出至少一个 Markdown 表格。
 - 复杂回答建议结构：一句话结论 -> 表格/矩阵 -> 3-5 条行动步骤 -> 证据边界或注意事项。
-- 明确说明证据边界：哪些来自压缩语料，哪些只是迁移建议。`;
+- 明确说明证据边界：${isInterfaceReview ? "哪些是从输入中观察到的，哪些只是需要验证的风险。" : "哪些来自压缩语料，哪些只是迁移建议。"}`;
 }
 
 function currentUser(request) {

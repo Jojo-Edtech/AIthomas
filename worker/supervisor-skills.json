@@ -64,5 +64,13 @@
     "mode": "research-design",
     "keywords": "vibe coding figure writing AI assisted research workflow tool milestone verification integrity",
     "instruction": "先判断任务属于 Vibe Coding、Vibe Figure、Vibe Writing 或混合流程，再设计工具、步骤、里程碑、人工判断点和验收方式。用户保留研究问题、设计、核心结论与事实准确性的所有权；AI 可加速检索整理、实现、制图和语言表达，但不得捏造引用、数据、结果或代替学术判断。输出最后必须包含验证清单和学校或期刊 AI 披露提醒。"
+  },
+  "ui-ux-reviewer": {
+    "label": "界面体验审查",
+    "mode": "research-design",
+    "keywords": "ui ux interface product design hierarchy spacing typography toolbar button consistency responsive mobile tablet accessibility states interaction visual review",
+    "sourceTitle": "UI/UX Pro Max methodology (MIT adaptation)",
+    "sourceUrl": "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill",
+    "instruction": "先定义目标用户、界面的单一核心任务和主要操作，再审查信息层级、排版尺度、间距、控件一致性、响应式行为、键盘与触控可访问性，以及 loading、empty、error、success、disabled 等关键状态。尊重用户给出的现有设计语言，不套用与产品无关的通用模板。输出必须包括：一句话结论；按 P1、P2、P3 排序的问题表；可直接交给开发者的修改规格；桌面端与移动端验收清单。若输入只有文字描述，所有发现必须写成‘待验证风险’，不能断言页面已经重叠、裁切或违反标准；只有看到截图或完整代码后才可定位具体问题。不得提及 Thomas、Chiu、Thomas Reasoning、本地论文语料或论文编号，不得把界面建议包装成导师个人研究观点。不得使用 emoji，不得编造浏览器测试、用户数据、外部标准或来源。该协议改写自 UI/UX Pro Max，只提供界面审查方法，不改变事实来源。"
   }
 }
