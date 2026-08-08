@@ -9,36 +9,6 @@ const DEFAULT_MESSAGES = [
   }
 ];
 
-const WORKFLOW_TEMPLATES = {
-  "research-matrix": { mode: "research-design", labelKey: "wfMatrix", promptKey: "wfMatrixPrompt" },
-  "concept-boundary": { mode: "theory-frame", labelKey: "wfBoundary", promptKey: "wfBoundaryPrompt" },
-  "variable-model": { mode: "research-design", labelKey: "wfVariable", promptKey: "wfVariablePrompt" },
-  "paper-pipeline": { mode: "literature-position", labelKey: "wfPipeline", promptKey: "wfPipelinePrompt" },
-  "paragraph-feedback": { mode: "writing-feedback", labelKey: "wfParagraph", promptKey: "wfParagraphPrompt" }
-};
-
-const SUPERVISOR_SKILL_TEMPLATES = {
-  "idea-evaluator": { mode: "research-design", labelKey: "skillIdea", descriptionKey: "skillIdeaDesc", promptKey: "skillIdeaPrompt" },
-  "deep-research": { mode: "literature-position", labelKey: "skillDeepResearch", descriptionKey: "skillDeepResearchDesc", promptKey: "skillDeepResearchPrompt" },
-  "intro-drafter": { mode: "writing-feedback", labelKey: "skillIntro", descriptionKey: "skillIntroDesc", promptKey: "skillIntroPrompt" },
-  "paper-writer": { mode: "writing-feedback", labelKey: "skillWriter", descriptionKey: "skillWriterDesc", promptKey: "skillWriterPrompt" },
-  "paper-polish": { mode: "writing-feedback", labelKey: "skillPolish", descriptionKey: "skillPolishDesc", promptKey: "skillPolishPrompt" },
-  "pre-submission-reviewer": { mode: "writing-feedback", labelKey: "skillReview", descriptionKey: "skillReviewDesc", promptKey: "skillReviewPrompt" },
-  "tech-paper-template": { mode: "research-design", labelKey: "skillTechTemplate", descriptionKey: "skillTechTemplateDesc", promptKey: "skillTechTemplatePrompt" },
-  "benchmark-paper-template": { mode: "research-design", labelKey: "skillBenchmark", descriptionKey: "skillBenchmarkDesc", promptKey: "skillBenchmarkPrompt" },
-  "figure-designer": { mode: "research-design", labelKey: "skillFigure", descriptionKey: "skillFigureDesc", promptKey: "skillFigurePrompt" },
-  "drawio-reconstruction": { mode: "research-design", labelKey: "skillDrawio", descriptionKey: "skillDrawioDesc", promptKey: "skillDrawioPrompt" },
-  "vibe-research-workflow": { mode: "research-design", labelKey: "skillVibe", descriptionKey: "skillVibeDesc", promptKey: "skillVibePrompt" },
-  "ui-ux-reviewer": {
-    mode: "research-design",
-    labelKey: "skillUiUx",
-    descriptionKey: "skillUiUxDesc",
-    promptKey: "skillUiUxPrompt",
-    sourceKey: "uiuxSource",
-    sourceUrl: "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill"
-  }
-};
-
 let lang = window.AI_THOMAS_I18N.detectLang();
 let lastStatus = null;
 let statusError = false;
@@ -64,9 +34,6 @@ const state = {
   authRequired: true,
   conversations: [],
   activeConversationId: loadActiveConversationId(),
-  mode: "research-design",
-  workflow: null,
-  supervisorSkill: null,
   messages: [...DEFAULT_MESSAGES],
   mobilePanelCollapsed: loadMobilePanelCollapsed(),
   busy: false
@@ -86,12 +53,6 @@ const messageList = document.querySelector("#messageList");
 const composer = document.querySelector("#composer");
 const input = document.querySelector("#messageInput");
 const sendButton = document.querySelector("#sendButton");
-const modeGrid = document.querySelector("#modeGrid");
-const workflowGrid = document.querySelector("#workflowGrid");
-const workflowChip = document.querySelector("#workflowChip");
-const supervisorSkillSelect = document.querySelector("#supervisorSkillSelect");
-const supervisorSkillDescription = document.querySelector("#supervisorSkillDescription");
-const supervisorSource = document.querySelector("#supervisorSource");
 const quickRow = document.querySelector("#quickRow");
 const clearButton = document.querySelector("#clearButton");
 const corpusStatus = document.querySelector("#corpusStatus");
@@ -110,8 +71,6 @@ async function init() {
   hidePrimaryScreens();
   applyI18n();
   renderMessages();
-  renderWorkflowButtons();
-  renderSupervisorSkillSelector();
   await loadStatus();
   await refreshAuth();
 }
@@ -125,8 +84,6 @@ function setLang(nextLang) {
   window.AI_THOMAS_I18N.saveLang(lang);
   applyI18n();
   renderMessages();
-  renderWorkflowButtons();
-  renderSupervisorSkillSelector();
   renderConversationList();
 }
 
@@ -184,49 +141,6 @@ logoutButton?.addEventListener("click", async () => {
   renderMessages();
   if (state.accessMode === "login") showLogin();
   else await refreshAuth();
-});
-
-modeGrid.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-mode]");
-  if (!button) return;
-  setMode(button.dataset.mode);
-  state.workflow = null;
-  state.supervisorSkill = null;
-  renderWorkflowButtons();
-  renderSupervisorSkillSelector();
-});
-
-workflowGrid?.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-workflow]");
-  if (!button) return;
-  const workflow = button.dataset.workflow;
-  const template = WORKFLOW_TEMPLATES[workflow];
-  if (!template) return;
-  state.workflow = workflow;
-  state.supervisorSkill = null;
-  setMode(template.mode);
-  renderWorkflowButtons();
-  renderSupervisorSkillSelector();
-  input.value = t(template.promptKey);
-  resizeInput();
-  input.focus();
-  input.setSelectionRange(input.value.length, input.value.length);
-});
-
-supervisorSkillSelect?.addEventListener("change", () => {
-  const supervisorSkill = supervisorSkillSelect.value;
-  const template = SUPERVISOR_SKILL_TEMPLATES[supervisorSkill];
-  state.supervisorSkill = template ? supervisorSkill : null;
-  if (template) {
-    state.workflow = null;
-    setMode(template.mode);
-    input.value = t(template.promptKey);
-    resizeInput();
-    input.focus();
-    input.setSelectionRange(input.value.length, input.value.length);
-  }
-  renderWorkflowButtons();
-  renderSupervisorSkillSelector();
 });
 
 conversationList?.addEventListener("click", async (event) => {
@@ -451,14 +365,8 @@ async function createConversation() {
   state.conversations = result.data.conversations || [];
   const conversation = result.data.conversation;
   state.activeConversationId = conversation.id;
-  state.mode = conversation.mode || "research-design";
-  state.workflow = conversation.workflow || null;
-  state.supervisorSkill = conversation.supervisorSkill || null;
   state.messages = conversation.messages?.length ? conversation.messages : [...DEFAULT_MESSAGES];
   saveActiveConversationId();
-  setMode(state.mode);
-  renderWorkflowButtons();
-  renderSupervisorSkillSelector();
   renderConversationList();
   renderMessages();
 }
@@ -477,14 +385,8 @@ async function loadConversation(conversationId) {
   }
   const conversation = result.data.conversation;
   state.activeConversationId = conversation.id;
-  state.mode = conversation.mode || "research-design";
-  state.workflow = conversation.workflow || null;
-  state.supervisorSkill = conversation.supervisorSkill || null;
   state.messages = conversation.messages?.length ? conversation.messages : [...DEFAULT_MESSAGES];
   saveActiveConversationId();
-  setMode(state.mode);
-  renderWorkflowButtons();
-  renderSupervisorSkillSelector();
   renderConversationList();
   renderMessages();
 }
@@ -520,9 +422,7 @@ async function sendMessage(content) {
       body: {
         conversationId: state.activeConversationId,
         message: content,
-        mode: state.mode,
-        workflow: state.workflow,
-        supervisorSkill: state.supervisorSkill
+        routingMode: "auto"
       }
     });
     state.messages = state.messages.filter((message) => !message.loading);
@@ -634,63 +534,6 @@ function isCrossOriginApi() {
   }
 }
 
-function setMode(mode) {
-  state.mode = mode || "research-design";
-  for (const item of modeGrid.querySelectorAll(".mode-button")) {
-    item.classList.toggle("active", item.dataset.mode === state.mode);
-  }
-}
-
-function renderWorkflowButtons() {
-  if (workflowGrid) {
-    for (const item of workflowGrid.querySelectorAll(".workflow-button")) {
-      item.classList.toggle("active", item.dataset.workflow === state.workflow);
-    }
-  }
-
-  if (workflowChip) {
-    const workflow = WORKFLOW_TEMPLATES[state.workflow];
-    const supervisorSkill = SUPERVISOR_SKILL_TEMPLATES[state.supervisorSkill];
-    workflowChip.hidden = !workflow && !supervisorSkill;
-    workflowChip.textContent = supervisorSkill
-      ? `${t("activeSkill")}${t(supervisorSkill.labelKey)}`
-      : workflow
-        ? `${t("activeTool")}${t(workflow.labelKey)}`
-        : "";
-  }
-}
-
-function renderSupervisorSkillSelector() {
-  if (!supervisorSkillSelect) return;
-  supervisorSkillSelect.innerHTML = "";
-
-  const emptyOption = document.createElement("option");
-  emptyOption.value = "";
-  emptyOption.textContent = t("supervisorNone");
-  supervisorSkillSelect.appendChild(emptyOption);
-
-  for (const [id, template] of Object.entries(SUPERVISOR_SKILL_TEMPLATES)) {
-    const option = document.createElement("option");
-    option.value = id;
-    option.textContent = t(template.labelKey);
-    supervisorSkillSelect.appendChild(option);
-  }
-
-  supervisorSkillSelect.value = SUPERVISOR_SKILL_TEMPLATES[state.supervisorSkill] ? state.supervisorSkill : "";
-  const template = SUPERVISOR_SKILL_TEMPLATES[state.supervisorSkill];
-  if (supervisorSkillDescription) {
-    supervisorSkillDescription.textContent = template
-      ? t(template.descriptionKey)
-      : t("supervisorDefaultDescription");
-  }
-  if (supervisorSource) {
-    const sourceKey = template?.sourceKey || "supervisorSource";
-    supervisorSource.dataset.i18n = sourceKey;
-    supervisorSource.textContent = t(sourceKey);
-    supervisorSource.href = template?.sourceUrl || "https://github.com/HKUSTDial/Supervisor-Skills";
-  }
-}
-
 function renderConversationList() {
   if (!conversationList) return;
   conversationList.innerHTML = "";
@@ -715,12 +558,12 @@ function renderConversationList() {
 
     const meta = document.createElement("span");
     meta.className = "conversation-meta";
-    meta.textContent = `${conversation.messageCount || 0} messages`;
+    meta.textContent = t("messageCount", { count: conversation.messageCount || 0 });
 
     const deleteButton = document.createElement("span");
     deleteButton.className = "conversation-delete";
     deleteButton.dataset.deleteConversation = conversation.id;
-    deleteButton.textContent = "Delete";
+    deleteButton.textContent = t("deleteConversation");
 
     item.append(title, meta, deleteButton);
     conversationList.appendChild(item);
@@ -741,24 +584,39 @@ function renderMessages() {
     role.className = "message-role";
     role.textContent = roleLabel(message.role);
 
-    header.appendChild(role);
+    const identity = document.createElement("div");
+    identity.className = "message-identity";
+    identity.appendChild(role);
+
+    if (message.role === "assistant" && (message.routing || message.loading)) {
+      const guidanceBadge = document.createElement("span");
+      guidanceBadge.className = "guidance-badge";
+      guidanceBadge.textContent = message.loading
+        ? t("matchingMethod")
+        : routingLabel(message.routing);
+      const reason = routingReason(message.routing);
+      if (reason) guidanceBadge.title = reason;
+      identity.appendChild(guidanceBadge);
+    }
+
+    header.appendChild(identity);
 
     if (message.role === "assistant" && !message.loading) {
       const copyButton = document.createElement("button");
       copyButton.className = "copy-button";
       copyButton.type = "button";
-      copyButton.textContent = "Copy";
+      copyButton.textContent = t("copy");
       copyButton.addEventListener("click", async () => {
         try {
           await copyToClipboard(messageContent(message));
-          copyButton.textContent = "Copied";
+          copyButton.textContent = t("copied");
           setTimeout(() => {
-            copyButton.textContent = "Copy";
+            copyButton.textContent = t("copy");
           }, 1300);
         } catch {
-          copyButton.textContent = "Copy failed";
+          copyButton.textContent = t("copyFailed");
           setTimeout(() => {
-            copyButton.textContent = "Copy";
+            copyButton.textContent = t("copy");
           }, 1300);
         }
       });
@@ -776,7 +634,7 @@ function renderMessages() {
       sources.className = "source-list";
       const sourceLabel = document.createElement("span");
       sourceLabel.className = "source-label";
-      sourceLabel.textContent = "Evidence used";
+      sourceLabel.textContent = t("evidenceUsed");
       sources.appendChild(sourceLabel);
       for (const source of message.sources) {
         const chip = document.createElement(source.url ? "a" : "span");
@@ -854,9 +712,23 @@ async function copyToClipboard(text) {
 }
 
 function roleLabel(role) {
-  if (role === "user") return "You";
-  if (role === "system") return "System";
+  if (role === "user") return t("roleYou");
+  if (role === "system") return t("roleSystem");
   return "AI Thomas";
+}
+
+function routingLabel(routing) {
+  if (!routing) return "";
+  return lang === "en"
+    ? routing.labelEn || routing.labelZh || routing.id || ""
+    : routing.labelZh || routing.labelEn || routing.id || "";
+}
+
+function routingReason(routing) {
+  if (!routing) return "";
+  return lang === "en"
+    ? routing.reasonEn || routing.reasonZh || ""
+    : routing.reasonZh || routing.reasonEn || "";
 }
 
 function formatModelName(model) {
@@ -999,6 +871,7 @@ function renderTable(rows) {
 
 function formatInline(text) {
   return escapeHtml(String(text || ""))
+    .replace(/&lt;br\s*\/?&gt;/gi, "<br>")
     .replace(/`([^`]+)`/g, "<code>$1</code>")
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
 }

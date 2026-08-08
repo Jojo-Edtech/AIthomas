@@ -3,6 +3,8 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const SUPERVISOR_SKILL_CONFIG = require("./worker/supervisor-skills.json");
+const GUIDANCE_ROUTER_PROMISE = import("./worker/guidance-router.mjs");
+const OUTPUT_SAFETY_PROMISE = import("./worker/output-safety.mjs");
 
 const ROOT_DIR = __dirname;
 const PUBLIC_DIR = path.join(ROOT_DIR, "public");
@@ -111,6 +113,19 @@ function parseAccessMode(value) {
   const normalized = String(value || "").trim().toLowerCase();
   if (["anonymous", "login", "open"].includes(normalized)) return normalized;
   return "anonymous";
+}
+
+async function resolveRequestRouting(payload, message, previousRouting = null) {
+  const { describeGuidanceRoute, resolveGuidanceRoute } = await GUIDANCE_ROUTER_PROMISE;
+  const useAutomaticGuidance = payload.routingMode === "auto"
+    || (!payload.mode && !payload.workflow && !payload.supervisorSkill);
+  if (useAutomaticGuidance) return resolveGuidanceRoute(message, previousRouting);
+  return describeGuidanceRoute({
+    mode: MODE_CONFIG[payload.mode] ? payload.mode : "research-design",
+    workflow: WORKFLOW_CONFIG[payload.workflow] ? payload.workflow : null,
+    supervisorSkill: SUPERVISOR_SKILL_CONFIG[payload.supervisorSkill] ? payload.supervisorSkill : null,
+    automatic: false
+  });
 }
 
 function readText(filePath, fallback = "") {
@@ -323,7 +338,7 @@ const WORKFLOW_CONFIG = {
 2. 一个 Markdown 定义对照表，列包含：概念、核心定义、边界、行动要求、测量指标、常见误区。
 3. 边界判断：什么情况应使用概念 A，什么情况应使用概念 B。
 4. 测量建议：维度、条目来源、验证方法。
-5. 导师反馈依据：说明定义、框架、测量三步为什么适合这个研究问题。
+5. 分析依据：说明定义、框架、测量三步为什么适合这个研究问题。
 6. 证据边界。`
   },
   "variable-model": {
@@ -336,7 +351,7 @@ const WORKFLOW_CONFIG = {
 3. 机制路径，用文本箭头或代码块表示。
 4. 3-6 条假设草案，必须可直接改写进论文。
 5. 方法建议：样本、设计、分析方法、稳健性检查。
-6. 导师反馈依据与证据边界。`
+6. 分析依据与证据边界。`
   },
   "paper-pipeline": {
     label: "论文序列",
@@ -347,7 +362,7 @@ const WORKFLOW_CONFIG = {
 2. 一个 Markdown 时间线表，列包含：时间、paper、核心问题、理论/框架、方法、预期贡献、可积累资产。
 3. 说明 1 年、3 年、5 年阶段目标。
 4. 说明哪些资产会复用，例如量表、框架、数据集、课程材料。
-5. 导师反馈依据与证据边界。`
+5. 分析依据与证据边界。`
   },
   "paragraph-feedback": {
     label: "段落反馈",
@@ -358,7 +373,7 @@ const WORKFLOW_CONFIG = {
 2. 改写版本，保持学术表达清晰直接。
 3. 可保留内容。
 4. 需要删除、弱化或移动的内容。
-5. 导师反馈依据：说明如何回到教育问题、机制、贡献和制度含义。
+5. 分析依据：说明如何回到教育问题、机制、贡献和制度含义。
 6. 如用户没有给段落，先要求用户贴段落，但仍可给出需要检查的维度表。`
   }
 };
@@ -446,7 +461,7 @@ function scoreChunk(chunk, terms, rawQuery) {
   return score;
 }
 
-function buildSystemPrompt(mode, selectedChunks, workflow, supervisorSkill) {
+function buildSystemPrompt(mode, selectedChunks, workflow, supervisorSkill, safeCorpusPrompt) {
   const corpus = loadCorpus();
   const modeConfig = MODE_CONFIG[mode] || MODE_CONFIG["research-design"];
   const workflowConfig = WORKFLOW_CONFIG[workflow] || null;
@@ -464,7 +479,7 @@ function buildSystemPrompt(mode, selectedChunks, workflow, supervisorSkill) {
 
   const basePrompt = isInterfaceReview
     ? "# AI Thomas UI/UX Review\n\n你是 AI Thomas 工作台内的界面体验审查助手。你审查产品界面，但不冒充导师本人，也不把界面意见描述成任何人的个人研究观点。"
-    : corpus.prompt;
+    : safeCorpusPrompt || corpus.prompt;
   const groundingBlock = isInterfaceReview
     ? "界面审查证据边界：本轮不使用本地论文语料作为 UI/UX 事实依据。唯一方法来源是经过改写的 UI/UX Pro Max 审查协议；输入中看不到的页面、状态和交互必须标记为需要实际页面验证。"
     : `语料边界：核心语料为已下载并抽取的 38 篇 Thomas K. F. Chiu 一作 PDF；扩展语料为 12 篇 WoS Reprint Addresses 标记 Thomas K. F. Chiu 为通讯作者的 PDF。另有 6 篇 Thomas 一作论文和 22 篇通讯作者候选文献暂不在知识底座中，不能编造其细节。REL01 Fu (2025)、REL02 Liu et al. (2025) 与 M01 AERE reviewer 稿件是本地隔离材料，不属于 AI Thomas 证据。回答时要区分“一作核心语料”和“通讯作者扩展语料”。
@@ -494,6 +509,7 @@ ${groundingBlock}
 - 用中文回答，除非用户明确要求英文。
 ${roleRules}
 - 外部 skills 只提供工作协议，不改变事实证据来源；不得把方法协议写成 Thomas 本人的观点，也不得声称执行了当前聊天不具备的浏览器、文件或视觉工具。
+- 私有、隔离或 reviewer 材料不属于本系统证据；回答中不得提及、引用或描述这类材料，即使是为了说明排除边界。
 - 不使用 emoji 或装饰性符号，保持专业、友好、直接。
 ${taskRules}
 - 回答要像研究工作台输出，不要像长篇散文。优先使用清楚的小标题、短段落、项目符号和 Markdown 表格。
@@ -536,7 +552,14 @@ async function callDeepSeek(messages, mode, workflow, supervisorSkill) {
 
   const latestUser = [...messages].reverse().find((message) => message.role === "user")?.content || "";
   const selectedChunks = selectContext(latestUser, mode, workflow, supervisorSkill);
-  const systemPrompt = buildSystemPrompt(mode, selectedChunks, workflow, supervisorSkill);
+  const { sanitizeModelAnswer, sanitizeSystemPrompt } = await OUTPUT_SAFETY_PROMISE;
+  const systemPrompt = buildSystemPrompt(
+    mode,
+    selectedChunks,
+    workflow,
+    supervisorSkill,
+    sanitizeSystemPrompt(loadCorpus().prompt)
+  );
   const safeMessages = messages
     .filter((message) => ["user", "assistant"].includes(message.role))
     .slice(-10)
@@ -581,7 +604,7 @@ async function callDeepSeek(messages, mode, workflow, supervisorSkill) {
       };
     }
 
-    const answer = data?.choices?.[0]?.message?.content || "";
+    const answer = sanitizeModelAnswer(data?.choices?.[0]?.message?.content || "");
     const sources = supervisorSkill === "ui-ux-reviewer" ? [] : publicSources(selectedChunks);
     if (SUPERVISOR_SKILL_CONFIG[supervisorSkill]) {
       const skillConfig = SUPERVISOR_SKILL_CONFIG[supervisorSkill];
@@ -859,6 +882,7 @@ function createConversation(user, title = "New conversation") {
     mode: "research-design",
     workflow: null,
     supervisorSkill: null,
+    routing: null,
     messages: []
   };
   writeConversation(conversation);
@@ -914,6 +938,7 @@ function serializeConversation(conversation) {
     mode: conversation.mode || "research-design",
     workflow: conversation.workflow || null,
     supervisorSkill: conversation.supervisorSkill || null,
+    routing: conversation.routing || null,
     messages: Array.isArray(conversation.messages) ? conversation.messages : []
   };
 }
@@ -1057,6 +1082,7 @@ async function handleApi(req, res) {
   if (req.method === "GET" && pathname === "/api/status") {
     const corpus = loadCorpus();
     const user = currentUser(req) || (ACCESS_MODE === "open" ? DEV_USER : null);
+    const { GUIDANCE_ROUTE_COUNT } = await GUIDANCE_ROUTER_PROMISE;
     return sendJson(res, 200, {
       ok: true,
       accessMode: ACCESS_MODE,
@@ -1069,6 +1095,8 @@ async function handleApi(req, res) {
       chunkCount: corpus.chunks.length,
       missingCount: corpus.missingCount,
       supervisorSkillCount: Object.keys(SUPERVISOR_SKILL_CONFIG).length,
+      guidanceRouteCount: GUIDANCE_ROUTE_COUNT,
+      automaticGuidance: true,
       limits: {
         perHour: LIMITS.perHour,
         perDay: LIMITS.perDay,
@@ -1183,20 +1211,18 @@ async function handleApi(req, res) {
   if (req.method === "POST" && pathname === "/api/chat") {
     const body = await readRequestBody(req);
     const payload = safeJson(body, {});
-    const supervisorSkill = SUPERVISOR_SKILL_CONFIG[payload.supervisorSkill] ? payload.supervisorSkill : null;
-    const mode = supervisorSkill
-      ? SUPERVISOR_SKILL_CONFIG[supervisorSkill].mode
-      : MODE_CONFIG[payload.mode] ? payload.mode : "research-design";
-    const workflow = supervisorSkill ? null : WORKFLOW_CONFIG[payload.workflow] ? payload.workflow : null;
 
     if (ACCESS_MODE === "open" && Array.isArray(payload.messages) && !payload.message && !payload.conversationId) {
       const messages = payload.messages;
+      const latestUser = [...messages].reverse().find((item) => item.role === "user")?.content || "";
+      const routing = await resolveRequestRouting(payload, latestUser);
+      const { mode, workflow, supervisorSkill } = routing;
       const usage = checkAndRecordUsage(req, messages, null);
       if (!usage.ok) {
         return sendJson(res, usage.status, { error: "usage_limit_reached", message: usage.message });
       }
       const result = await callDeepSeek(messages, mode, workflow, supervisorSkill);
-      return sendJson(res, result.status, result.body);
+      return sendJson(res, result.status, { ...result.body, routing });
     }
 
     const user = requireUser(req, res);
@@ -1223,6 +1249,9 @@ async function handleApi(req, res) {
       conversation = createConversation(user, titleFromMessage(message));
     }
 
+    const routing = await resolveRequestRouting(payload, message, conversation.routing);
+    const { mode, workflow, supervisorSkill } = routing;
+
     const userMessage = makeMessage("user", message);
     const messages = [...conversation.messages, userMessage]
       .filter((item) => ["user", "assistant"].includes(item.role));
@@ -1239,6 +1268,7 @@ async function handleApi(req, res) {
     conversation.mode = mode;
     conversation.workflow = workflow;
     conversation.supervisorSkill = supervisorSkill;
+    conversation.routing = routing;
     conversation.updatedAt = new Date().toISOString();
     writeConversation(conversation);
 
@@ -1247,19 +1277,22 @@ async function handleApi(req, res) {
       const assistantMessage = makeMessage("assistant", result.body.answer || "", {
         sources: result.body.sources || [],
         workflow: result.body.workflow || null,
-        supervisorSkill: result.body.supervisorSkill || null
+        supervisorSkill: result.body.supervisorSkill || null,
+        routing
       });
       conversation.messages.push(assistantMessage);
       conversation.updatedAt = assistantMessage.createdAt;
       writeConversation(conversation);
       return sendJson(res, 200, {
         ...result.body,
+        routing,
         conversation: serializeConversation(conversation),
         conversations: listConversations(user)
       });
     }
     return sendJson(res, result.status, {
       ...result.body,
+      routing,
       conversation: serializeConversation(conversation)
     });
   }

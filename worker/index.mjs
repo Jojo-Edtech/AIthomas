@@ -1,5 +1,7 @@
 import { BASE_SYSTEM_PROMPT, DISTILLED_KNOWLEDGE, MATRIX_SUMMARY } from "./knowledge.mjs";
 import SUPERVISOR_SKILL_CONFIG from "./supervisor-skills.json";
+import { describeGuidanceRoute, GUIDANCE_ROUTE_COUNT, resolveGuidanceRoute } from "./guidance-router.mjs";
+import { sanitizeModelAnswer, sanitizeSystemPrompt } from "./output-safety.mjs";
 
 const SESSION_COOKIE_NAME = "ai_thomas_guest";
 const DEFAULT_MODEL = "Qwen/Qwen3-30B-A3B-Instruct-2507";
@@ -39,7 +41,7 @@ const WORKFLOW_CONFIG = {
   },
   "concept-boundary": {
     label: "概念边界",
-    instruction: `输出结构必须为：一句话结论；定义对照表；边界判断；测量建议；导师反馈依据；证据边界。`
+    instruction: `输出结构必须为：一句话结论；定义对照表；边界判断；测量建议；分析依据；证据边界。`
   },
   "variable-model": {
     label: "变量模型",
@@ -51,7 +53,7 @@ const WORKFLOW_CONFIG = {
   },
   "paragraph-feedback": {
     label: "段落反馈",
-    instruction: `输出结构必须为：问题诊断表；改写版本；可保留内容；需删除或弱化内容；导师反馈依据。`
+    instruction: `输出结构必须为：问题诊断表；改写版本；可保留内容；需删除或弱化内容；分析依据。`
   }
 };
 
@@ -95,6 +97,9 @@ async function handleApi(request, env, url) {
       missingCount: 6,
       freeQuotaProtected: true,
       supervisorSkillCount: Object.keys(SUPERVISOR_SKILL_CONFIG).length,
+      guidanceRouteCount: GUIDANCE_ROUTE_COUNT,
+      automaticGuidance: true,
+      outputSafety: true,
       limits: {
         perHour: limits.perHour,
         perDay: limits.perDay,
@@ -202,11 +207,17 @@ async function handleChat(request, env) {
   if (payload.conversationId && !conversation) return json(request, env, { error: "not_found" }, 404);
   if (!conversation) conversation = await createConversation(env, user.id, titleFromMessage(message));
 
-  const supervisorSkill = SUPERVISOR_SKILL_CONFIG[payload.supervisorSkill] ? payload.supervisorSkill : null;
-  const mode = supervisorSkill
-    ? SUPERVISOR_SKILL_CONFIG[supervisorSkill].mode
-    : MODE_CONFIG[payload.mode] ? payload.mode : "research-design";
-  const workflow = supervisorSkill ? null : WORKFLOW_CONFIG[payload.workflow] ? payload.workflow : null;
+  const useAutomaticGuidance = payload.routingMode === "auto"
+    || (!payload.mode && !payload.workflow && !payload.supervisorSkill);
+  const routing = useAutomaticGuidance
+    ? resolveGuidanceRoute(message, conversation.routing)
+    : describeGuidanceRoute({
+      mode: MODE_CONFIG[payload.mode] ? payload.mode : "research-design",
+      workflow: WORKFLOW_CONFIG[payload.workflow] ? payload.workflow : null,
+      supervisorSkill: SUPERVISOR_SKILL_CONFIG[payload.supervisorSkill] ? payload.supervisorSkill : null,
+      automatic: false
+    });
+  const { mode, workflow, supervisorSkill } = routing;
   const userMessage = makeMessage("user", message);
   const modelMessages = [...conversation.messages, userMessage]
     .filter((item) => ["user", "assistant"].includes(item.role))
@@ -225,6 +236,7 @@ async function handleChat(request, env) {
   conversation.mode = mode;
   conversation.workflow = workflow;
   conversation.supervisorSkill = supervisorSkill;
+  conversation.routing = routing;
   conversation.updatedAt = userMessage.createdAt;
   await writeConversation(env, conversation);
 
@@ -251,7 +263,8 @@ async function handleChat(request, env) {
   const assistantMessage = makeMessage("assistant", modelResult.answer, {
     sources,
     workflow,
-    supervisorSkill
+    supervisorSkill,
+    routing
   });
   conversation.messages.push(assistantMessage);
   conversation.updatedAt = assistantMessage.createdAt;
@@ -264,6 +277,8 @@ async function handleChat(request, env) {
     sources: assistantMessage.sources,
     workflow,
     supervisorSkill,
+    routing,
+    outputSafety: true,
     conversation: serializeConversation(conversation),
     conversations: await listConversations(env, user.id)
   }));
@@ -308,7 +323,7 @@ async function callModelScope(env, messages, mode, workflow, supervisorSkill) {
       };
     }
     const choice = Array.isArray(data?.choices) ? data.choices[0] : null;
-    const answer = String(choice?.message?.content || choice?.text || "").trim();
+    const answer = sanitizeModelAnswer(choice?.message?.content || choice?.text || "");
     if (!answer) {
       return {
         ok: false,
@@ -337,7 +352,7 @@ function buildSystemPrompt(mode, workflow, supervisorSkill) {
   const isInterfaceReview = supervisorSkill === "ui-ux-reviewer";
   const basePrompt = isInterfaceReview
     ? "# AI Thomas UI/UX Review\n\n你是 AI Thomas 工作台内的界面体验审查助手。你审查产品界面，但不冒充导师本人，也不把界面意见描述成任何人的个人研究观点。"
-    : BASE_SYSTEM_PROMPT;
+    : sanitizeSystemPrompt(BASE_SYSTEM_PROMPT);
   const groundingBlock = isInterfaceReview
     ? "界面审查证据边界：本轮不使用本地论文语料作为 UI/UX 事实依据。唯一方法来源是经过改写的 UI/UX Pro Max 审查协议；输入中看不到的页面、状态和交互必须标记为需要实际页面验证。"
     : `压缩知识底座：
@@ -361,7 +376,10 @@ ${groundingBlock}
 - 用中文回答，除非用户明确要求英文。
 ${roleRules}
 - 外部 skills 只提供工作协议，不改变事实证据来源；不得把方法协议写成 Thomas 本人的观点，也不得声称执行了当前聊天不具备的浏览器、文件或视觉工具。
+- 私有、隔离或 reviewer 材料不在本部署的证据中；回答中不得提及、引用或描述这类材料，即使是为了说明排除边界。
+- 当前 Worker 只有压缩语料，没有逐篇全文检索结果；不得虚构具体论文编号、标题或逐篇引用。把依据表述为“压缩语料中的稳定模式”，并把进一步核验列为下一步。
 - 不使用 emoji 或装饰性符号，保持专业、友好、直接。
+- 默认控制在 1200 个中文字以内；优先保留一个核心表格和可执行动作，避免重复解释。
 - 优先使用清楚的小标题、短段落、项目符号和 Markdown 表格。
 - 当用户询问路径、策略、比较、概念边界、变量设计、论文结构、研究计划或可复制做法时，必须给出至少一个 Markdown 表格。
 - 复杂回答建议结构：一句话结论 -> 表格/矩阵 -> 3-5 条行动步骤 -> 证据边界或注意事项。
@@ -505,6 +523,7 @@ async function createConversation(env, userId, title = "New conversation") {
     mode: "research-design",
     workflow: null,
     supervisorSkill: null,
+    routing: null,
     messages: []
   };
   await writeConversation(env, conversation);
@@ -542,6 +561,7 @@ function serializeConversation(conversation) {
     mode: conversation.mode || "research-design",
     workflow: conversation.workflow || null,
     supervisorSkill: conversation.supervisorSkill || null,
+    routing: conversation.routing || null,
     messages: Array.isArray(conversation.messages) ? conversation.messages : []
   };
 }

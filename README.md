@@ -26,17 +26,19 @@ The GitHub Pages frontend in `docs/` calls the protected Cloudflare Worker backe
 - Neighboring paper chunks carry about 180 characters of overlap, so concepts and claims are less likely to be cut apart.
 - Each answer retrieves up to 12 relevant chunks, with at most 3 chunks from the same paper, before calling DeepSeek.
 
-## Research Workflows
+## Automatic Research Guidance
 
-The frontend includes five workflow templates: research matrix, concept boundary, variable model, paper pipeline, and paragraph feedback. Each workflow fills a structured prompt, sets the matching research mode, and sends a `workflow` id to `/api/chat`. The backend keeps plain chat backward-compatible while adding workflow-specific output requirements such as tables, actionable steps, research mentor rationale, and evidence boundaries.
+Users do not need to choose a research mode, workflow, or skill. Every message is routed on the backend to the most relevant method, including research matrices, concept boundaries, variable models, paper pipelines, paragraph feedback, and the installed research protocols. Short follow-ups can continue the previous turn's method. The selected method is stored with the assistant message and shown as a small, non-interactive label so the process stays transparent without turning internal routing into interface work.
+
+The router is deterministic and runs before the model call, so it adds no extra ModelScope request, latency, or quota consumption. Existing clients can still send explicit `mode`, `workflow`, or `supervisorSkill` fields; the current frontend sends `routingMode: "auto"`.
 
 ## Supervisor Skills
 
-AI Thomas also includes 11 selectable research guidance protocols adapted from [HKUST DIAL Supervisor-Skills](https://github.com/HKUSTDial/Supervisor-Skills): idea evaluation, deep literature synthesis, Introduction drafting, paper writing, academic polishing, pre-submission review, technical-paper planning, benchmark-paper planning, figure design, Draw.io reconstruction planning, and AI-assisted research workflow design.
+AI Thomas includes 11 automatically routed research guidance protocols adapted from [HKUST DIAL Supervisor-Skills](https://github.com/HKUSTDial/Supervisor-Skills): idea evaluation, deep literature synthesis, Introduction drafting, paper writing, academic polishing, pre-submission review, technical-paper planning, benchmark-paper planning, figure design, Draw.io reconstruction planning, and AI-assisted research workflow design.
 
 It also includes a twelfth protocol, **UI/UX review**, adapted from the MIT-licensed [UI/UX Pro Max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill). This protocol reviews product purpose, hierarchy, control consistency, responsive behavior, accessibility, and interface states, then returns prioritized findings and testable implementation specifications. It is a text-only review method: without an actual page, screenshot, or complete code sample, it must mark visual conclusions as requiring live-page verification.
 
-The selected `supervisorSkill` is validated by the backend, saved with the current anonymous conversation, and restored when that conversation is reopened. It changes the procedure used for the response and never represents the supervisor's personal opinion. Research protocols keep the local corpus as their grounding source; the UI/UX review protocol intentionally uses only the user's interface input and its attributed review method, so unrelated paper evidence is not presented as UI evidence.
+The automatically selected route is validated by the backend and saved with both the conversation and the assistant message. It changes the procedure used for that response and never represents the supervisor's personal opinion. Research protocols keep the local corpus as their grounding source; the UI/UX review protocol intentionally uses only the user's interface input and its attributed review method, so unrelated paper evidence is not presented as UI evidence.
 
 Capability boundaries are explicit. The public chat cannot run a live scholarly search, so the deep-research protocol reports corpus gaps rather than inventing citations. It also cannot export or visually verify a `.drawio` file, so the Draw.io protocol returns a reconstruction specification only. Attribution and adaptation details are in [`SUPERVISOR_SKILLS_NOTICE.md`](SUPERVISOR_SKILLS_NOTICE.md) and [`UI_UX_SKILL_NOTICE.md`](UI_UX_SKILL_NOTICE.md).
 
